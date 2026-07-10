@@ -240,10 +240,11 @@
         }
 
         async function initApp() {
+            const loader = document.getElementById('loader');
             try {
                 // 1. Obtener KPIs (Dashboard Stats)
                 const { data: stats, error: statErr } = await supabase.rpc('get_dashboard_stats');
-                if (statErr) throw statErr;
+                if (statErr) throw new Error("Error en función SQL get_dashboard_stats: " + statErr.message);
 
                 // Animación de números para neuromarketing
                 document.getElementById('kpi-prod').innerText = formatNumber(stats.total_productos);
@@ -260,20 +261,30 @@
                     .order('stock_actual', { ascending: true }) // Mostrar los críticos primero
                     .limit(50);
                 
-                if (prodErr) throw prodErr;
+                if (prodErr) throw new Error("Error leyendo la tabla productos: " + prodErr.message);
                 renderTable(prods);
 
                 // Ocultar Loader suavemente
                 setTimeout(() => {
-                    const loader = document.getElementById('loader');
                     loader.style.opacity = '0';
                     loader.style.transition = 'opacity 0.5s ease';
                     setTimeout(() => loader.remove(), 500);
-                }, 800); // Pequeño delay intencional para mostrar que "está cargando masivamente"
+                }, 800); // Pequeño delay intencional
 
             } catch (err) {
                 console.error("Error inicializando la app:", err);
-                alert("Error conectando a la base de datos industrial. Revisa la consola.");
+                // Dibujamos el error en pantalla para saber la causa exacta
+                loader.innerHTML = `
+                    <div class="bg-white p-8 rounded-2xl border border-red-200 text-center max-w-md shadow-2xl">
+                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fa-solid fa-triangle-exclamation text-3xl text-red-600"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Conexión Interrumpida</h3>
+                        <p class="text-sm text-red-600 font-medium mb-4 bg-red-50 p-3 rounded-lg border border-red-100">${err.message}</p>
+                        <p class="text-xs text-slate-500">¿Ejecutaste el Script SQL en Supabase? Es necesario para crear los 300 productos de la demo.</p>
+                    </div>
+                `;
+                loader.style.backgroundColor = 'rgba(241, 245, 249, 0.9)'; // Fondo translúcido
             }
         }
 
