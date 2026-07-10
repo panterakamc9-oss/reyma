@@ -225,12 +225,7 @@
     </div>
 
     <script>
-        // Supabase Initialization
-        const supabaseUrl = 'https://wepsvgqdctsgtnizhbvc.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlcHN2Z3FkY3RzZ3RuaXpoYnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2NTYxMTMsImV4cCI6MjA5OTIzMjExM30.Sce0_kT7eT1AGy-o_-7w4t_Rq9TowBHDN-dWK8nmEOA';
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-        // Utilidades de formato
+        // Utilidades de formato globales
         const formatMoney = (amount) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
         const formatNumber = (num) => new Intl.NumberFormat('es-MX').format(num);
 
@@ -239,165 +234,182 @@
             modal.classList.toggle('active');
         }
 
-        async function initApp() {
+        // IIFE para proteger el scope y evitar el error "Identifier supabase has already been declared"
+        (async function() {
             const loader = document.getElementById('loader');
-            try {
-                // 1. Obtener KPIs (Dashboard Stats)
-                const { data: stats, error: statErr } = await supabase.rpc('get_dashboard_stats');
-                if (statErr) throw new Error("Error en función SQL get_dashboard_stats: " + statErr.message);
-
-                // Animación de números para neuromarketing
-                document.getElementById('kpi-prod').innerText = formatNumber(stats.total_productos);
-                document.getElementById('kpi-crit').innerText = formatNumber(stats.stock_bajo);
-                document.getElementById('kpi-val').innerText = formatMoney(stats.valor_inventario);
-
-                // 2. Renderizar Gráfica
-                renderChart(stats.categorias);
-
-                // 3. Cargar Tabla de Productos (Top 50 para la demo)
-                const { data: prods, error: prodErr } = await supabase
-                    .from('productos')
-                    .select('*, categorias(nombre)')
-                    .order('stock_actual', { ascending: true }) // Mostrar los críticos primero
-                    .limit(50);
-                
-                if (prodErr) throw new Error("Error leyendo la tabla productos: " + prodErr.message);
-                renderTable(prods);
-
-                // Ocultar Loader suavemente
-                setTimeout(() => {
-                    loader.style.opacity = '0';
-                    loader.style.transition = 'opacity 0.5s ease';
-                    setTimeout(() => loader.remove(), 500);
-                }, 800); // Pequeño delay intencional
-
-            } catch (err) {
-                console.error("Error inicializando la app:", err);
-                // Dibujamos el error en pantalla para saber la causa exacta
+            
+            // 🚨 PROTECCIÓN CONTRA DOBLE CLIC (file:///) 🚨
+            if (window.location.protocol === 'file:') {
                 loader.innerHTML = `
                     <div class="bg-white p-8 rounded-2xl border border-red-200 text-center max-w-md shadow-2xl">
                         <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <i class="fa-solid fa-triangle-exclamation text-3xl text-red-600"></i>
                         </div>
-                        <h3 class="text-xl font-bold text-slate-800 mb-2">Conexión Interrumpida</h3>
-                        <p class="text-sm text-red-600 font-medium mb-4 bg-red-50 p-3 rounded-lg border border-red-100">${err.message}</p>
-                        <p class="text-xs text-slate-500">¿Ejecutaste el Script SQL en Supabase? Es necesario para crear los 300 productos de la demo.</p>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Bloqueo de Seguridad (file://)</h3>
+                        <p class="text-sm text-red-600 font-medium mb-4 bg-red-50 p-3 rounded-lg border border-red-100">
+                            Estás abriendo el archivo directamente desde tu disco duro (Descargas).<br><br>
+                            Los navegadores bloquean las conexiones a bases de datos desde archivos locales.
+                        </p>
+                        <p class="text-sm text-slate-700 font-bold bg-amber-100 p-3 rounded-lg border border-amber-200 shadow-inner">
+                            👉 SOLUCIÓN: Guarda el archivo, súbelo a GitHub Pages y ábrelo desde tu enlace web (.github.io). ¡Ahí sí funcionará!
+                        </p>
                     </div>
                 `;
-                loader.style.backgroundColor = 'rgba(241, 245, 249, 0.9)'; // Fondo translúcido
+                loader.style.backgroundColor = 'rgba(241, 245, 249, 0.95)';
+                return; // Detenemos la app aquí para que no de errores en consola
             }
-        }
 
-        // Renderizado del Módulo Visual de Inventario
-        function renderTable(productos) {
-            const tbody = document.getElementById('table-body');
-            let html = '';
-
-            productos.forEach(p => {
-                // Lógica del semáforo visual
-                let statusColor = '';
-                let statusText = '';
-                let percent = Math.min((p.stock_actual / p.stock_minimo) * 100, 100);
-                
-                if (p.stock_actual === 0) {
-                    statusColor = 'bg-red-500'; statusText = 'Agotado'; percent = 0;
-                } else if (p.stock_actual <= p.stock_minimo) {
-                    statusColor = 'bg-amber-500'; statusText = 'Crítico';
-                } else {
-                    statusColor = 'bg-emerald-500'; statusText = 'Óptimo';
-                }
-
-                html += `
-                    <tr class="hover:bg-slate-50 transition cursor-pointer group">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 h-10 w-10 relative">
-                                    <img class="h-10 w-10 rounded-lg object-cover border border-slate-200" src="${p.imagen_url}" alt="">
-                                    ${p.stock_actual === 0 ? '<span class="absolute -top-1 -right-1 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>' : ''}
-                                </div>
-                                <div class="ml-4">
-                                    <div class="text-sm font-bold text-slate-800">${p.nombre}</div>
-                                    <div class="text-xs text-slate-500">${p.sku}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                                ${p.categorias ? p.categorias.nombre : 'Sin categoría'}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center gap-3">
-                                <div class="text-sm font-bold ${p.stock_actual <= p.stock_minimo ? 'text-red-600' : 'text-slate-700'} w-12">${p.stock_actual} <span class="text-xs text-slate-400 font-normal">/ ${p.stock_minimo}</span></div>
-                                <div class="flex-1 max-w-[120px]">
-                                    <div class="progress-bar-bg">
-                                        <div class="progress-bar-fill ${statusColor}" style="width: ${percent}%"></div>
-                                    </div>
-                                    <div class="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-wide">${statusText}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <button class="text-blue-600 hover:text-blue-900 bg-blue-50 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                            <button class="text-slate-600 hover:text-slate-900 bg-slate-100 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition ml-1" title="Ajuste Rápido"><i class="fa-solid fa-boxes-stacked"></i></button>
-                        </td>
-                    </tr>
-                `;
-            });
-            tbody.innerHTML = html;
-        }
-
-        // Gráfica de Alto Impacto con Chart.js
-        function renderChart(categoriasData) {
-            const ctx = document.getElementById('categoryChart').getContext('2d');
+            const supabaseUrl = 'https://wepsvgqdctsgtnizhbvc.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlcHN2Z3FkY3RzZ3RuaXpoYnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2NTYxMTMsImV4cCI6MjA5OTIzMjExM30.Sce0_kT7eT1AGy-o_-7w4t_Rq9TowBHDN-dWK8nmEOA';
             
-            // Si no hay datos por alguna razón, ponemos un array vacío preventivo
-            const labels = categoriasData ? categoriasData.map(c => c.nombre) : [];
-            const data = categoriasData ? categoriasData.map(c => c.total_stock) : [];
-            const colors = categoriasData ? categoriasData.map(c => c.color) : [];
+            // Usamos un nombre de variable distinto (dbClient) en lugar de supabase para no chocar con la librería
+            const dbClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: data,
-                        backgroundColor: colors,
-                        borderWidth: 0,
-                        hoverOffset: 10
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '75%',
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 20,
-                                usePointStyle: true,
-                                pointStyle: 'circle',
-                                font: { family: "'Inter', sans-serif", size: 11, weight: '600' },
-                                color: '#64748b'
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: '#1e293b',
-                            titleFont: { family: "'Inter', sans-serif", size: 13 },
-                            bodyFont: { family: "'Inter', sans-serif", size: 12, weight: 'bold' },
-                            padding: 12,
-                            cornerRadius: 8,
-                            boxPadding: 6
-                        }
-                    },
-                    animation: { animateScale: true, animateRotate: true }
+            async function initApp() {
+                try {
+                    // 1. Obtener KPIs (Dashboard Stats)
+                    const { data: stats, error: statErr } = await dbClient.rpc('get_dashboard_stats');
+                    if (statErr) throw new Error("Error SQL get_dashboard_stats: " + statErr.message);
+
+                    // Animación de números para neuromarketing
+                    document.getElementById('kpi-prod').innerText = formatNumber(stats.total_productos);
+                    document.getElementById('kpi-crit').innerText = formatNumber(stats.stock_bajo);
+                    document.getElementById('kpi-val').innerText = formatMoney(stats.valor_inventario);
+
+                    // 2. Renderizar Gráfica
+                    renderChart(stats.categorias);
+
+                    // 3. Cargar Tabla de Productos
+                    const { data: prods, error: prodErr } = await dbClient
+                        .from('productos')
+                        .select('*, categorias(nombre)')
+                        .order('stock_actual', { ascending: true }) // Mostrar críticos primero
+                        .limit(50);
+                    
+                    if (prodErr) throw new Error("Error en tabla productos: " + prodErr.message);
+                    renderTable(prods);
+
+                    // Ocultar Loader suavemente
+                    setTimeout(() => {
+                        loader.style.opacity = '0';
+                        loader.style.transition = 'opacity 0.5s ease';
+                        setTimeout(() => loader.remove(), 500);
+                    }, 800);
+
+                } catch (err) {
+                    console.error("Error inicializando la app:", err);
+                    loader.innerHTML = `
+                        <div class="bg-white p-8 rounded-2xl border border-red-200 text-center max-w-md shadow-2xl">
+                            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fa-solid fa-database text-3xl text-red-600"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-800 mb-2">Base de Datos No Lista</h3>
+                            <p class="text-sm text-red-600 font-medium mb-4 bg-red-50 p-3 rounded-lg border border-red-100">${err.message}</p>
+                            <p class="text-xs text-slate-700 font-bold">
+                                👉 Asegúrate de haber ejecutado el script SQL "Base de Datos Reyma Demo" en tu Supabase.
+                            </p>
+                        </div>
+                    `;
+                    loader.style.backgroundColor = 'rgba(241, 245, 249, 0.95)';
                 }
-            });
-        }
+            }
 
-        // Iniciar
-        window.onload = initApp;
+            function renderTable(productos) {
+                const tbody = document.getElementById('table-body');
+                let html = '';
+
+                productos.forEach(p => {
+                    let statusColor = '';
+                    let statusText = '';
+                    let percent = Math.min((p.stock_actual / p.stock_minimo) * 100, 100);
+                    
+                    if (p.stock_actual === 0) {
+                        statusColor = 'bg-red-500'; statusText = 'Agotado'; percent = 0;
+                    } else if (p.stock_actual <= p.stock_minimo) {
+                        statusColor = 'bg-amber-500'; statusText = 'Crítico';
+                    } else {
+                        statusColor = 'bg-emerald-500'; statusText = 'Óptimo';
+                    }
+
+                    const catNombre = p.categorias ? p.categorias.nombre : 'Sin categoría';
+
+                    html += `
+                        <tr class="hover:bg-slate-50 transition cursor-pointer group">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10 relative">
+                                        <img class="h-10 w-10 rounded-lg object-cover border border-slate-200 shadow-sm" src="${p.imagen_url}" alt="">
+                                        ${p.stock_actual === 0 ? '<span class="absolute -top-1 -right-1 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500 shadow-sm"></span></span>' : ''}
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-bold text-slate-800">${p.nombre}</div>
+                                        <div class="text-xs text-slate-500 font-mono mt-0.5">${p.sku}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                                    ${catNombre}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center gap-3">
+                                    <div class="text-sm font-bold ${p.stock_actual <= p.stock_minimo ? 'text-red-600' : 'text-slate-700'} w-12 text-right">${p.stock_actual} <span class="text-[10px] text-slate-400 font-normal">/ ${p.stock_minimo}</span></div>
+                                    <div class="flex-1 min-w-[100px]">
+                                        <div class="progress-bar-bg">
+                                            <div class="progress-bar-fill ${statusColor}" style="width: ${percent}%"></div>
+                                        </div>
+                                        <div class="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-wide">${statusText}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button class="text-blue-600 hover:text-white hover:bg-blue-600 bg-blue-50 w-8 h-8 rounded-lg opacity-0 group-hover:opacity-100 transition duration-200" title="Editar"><i class="fa-solid fa-pen text-xs"></i></button>
+                                <button class="text-slate-600 hover:text-white hover:bg-slate-800 bg-slate-100 w-8 h-8 rounded-lg opacity-0 group-hover:opacity-100 transition duration-200 ml-1" title="Ajuste Rápido"><i class="fa-solid fa-boxes-stacked text-xs"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+            }
+
+            function renderChart(categoriasData) {
+                const ctx = document.getElementById('categoryChart').getContext('2d');
+                
+                const labels = categoriasData ? categoriasData.map(c => c.nombre) : [];
+                const data = categoriasData ? categoriasData.map(c => c.total_stock) : [];
+                const colors = categoriasData ? categoriasData.map(c => c.color) : [];
+
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: colors,
+                            borderWidth: 0,
+                            hoverOffset: 10
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '75%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { padding: 20, usePointStyle: true, pointStyle: 'circle', font: { family: "'Inter', sans-serif", size: 11, weight: '600' }, color: '#64748b' }
+                            },
+                            tooltip: { backgroundColor: '#1e293b', titleFont: { family: "'Inter', sans-serif", size: 13 }, bodyFont: { family: "'Inter', sans-serif", size: 12, weight: 'bold' }, padding: 12, cornerRadius: 8, boxPadding: 6 }
+                        },
+                        animation: { animateScale: true, animateRotate: true }
+                    }
+                });
+            }
+
+            // Iniciar aplicación
+            initApp();
+        })();
     </script>
 </body>
 </html>
