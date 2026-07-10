@@ -9,6 +9,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SweetAlert2 para notificaciones profesionales -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -19,48 +21,58 @@
         .progress-bar-bg { background-color: #e2e8f0; border-radius: 9999px; overflow: hidden; height: 6px; width: 100%; margin-top: 4px; }
         .progress-bar-fill { height: 100%; border-radius: 9999px; transition: width 0.5s ease-in-out; }
         
-        /* Custom Scrollbar para la tabla */
+        /* Custom Scrollbar */
         .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
+        /* Modal y Vistas SPA */
         .modal { display: none; }
         .modal.active { display: flex; animation: fadeIn 0.2s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .view-section { display: none; animation: fadeIn 0.3s ease-out; }
+        .view-section.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Estilos de menú activo */
+        .nav-item { transition: all 0.2s ease; cursor: pointer; }
+        .nav-item.active { background-color: rgba(37, 99, 235, 0.1); border-color: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .nav-item:hover:not(.active) { background-color: rgba(30, 41, 59, 0.5); color: white; }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden text-slate-800">
 
     <aside class="sidebar w-64 h-full flex flex-col text-slate-300 flex-shrink-0 shadow-2xl z-20">
-        <div class="p-6 pb-2 border-b border-slate-700/50">
-            <h1 class="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
-                <i class="fa-solid fa-cube text-blue-500"></i>
-                Reyma<span class="text-blue-500">Pro</span>
-            </h1>
-            <p class="text-xs text-slate-500 mt-1 uppercase tracking-wider font-semibold">Enterprise Edition</p>
+        <div class="p-6 pb-4 border-b border-slate-700/50 flex flex-col items-center justify-center">
+            <!-- Logo Oficial de Reyma -->
+            <div class="bg-white p-2 rounded-xl w-full flex items-center justify-center shadow-inner mb-2">
+                <img src="https://drive.google.com/uc?export=view&id=1JOn73OiHsxTfBKunHXbKax6-L9IY3gJW" alt="Reyma Logo" class="max-h-12 object-contain">
+            </div>
+            <p class="text-[10px] text-slate-400 mt-1 uppercase tracking-widest font-bold w-full text-center">InventariosPRO V2.0</p>
         </div>
         
         <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-            <a href="#" class="flex items-center gap-3 px-3 py-2.5 bg-blue-600/10 text-blue-400 rounded-lg font-medium transition border border-blue-500/20">
+            <div id="nav-dashboard" onclick="navigate('dashboard')" class="nav-item active flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium border border-transparent">
                 <i class="fa-solid fa-chart-pie w-5"></i> Dashboard
-            </a>
-            <a href="#" class="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-800/50 hover:text-white rounded-lg font-medium transition">
+            </div>
+            <div id="nav-inventario" onclick="navigate('inventario')" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium border border-transparent">
                 <i class="fa-solid fa-boxes-stacked w-5"></i> Inventario
-            </a>
-            <a href="#" class="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-800/50 hover:text-white rounded-lg font-medium transition">
+            </div>
+            <div id="nav-movimientos" onclick="navigate('movimientos')" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium border border-transparent">
                 <i class="fa-solid fa-arrow-right-arrow-left w-5"></i> Movimientos
-            </a>
-            <a href="#" class="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-800/50 hover:text-white rounded-lg font-medium transition">
+            </div>
+            <div id="nav-finanzas" onclick="navigate('finanzas')" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium border border-transparent">
                 <i class="fa-solid fa-file-invoice-dollar w-5"></i> Finanzas
-            </a>
+            </div>
             <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-6 mb-2 px-3">Administración</p>
-            <a href="#" class="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-800/50 hover:text-white rounded-lg font-medium transition">
+            <div id="nav-usuarios" onclick="navigate('usuarios')" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium border border-transparent">
                 <i class="fa-solid fa-users w-5"></i> Usuarios
-            </a>
-            <a href="#" class="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-800/50 hover:text-white rounded-lg font-medium transition">
+            </div>
+            <div id="nav-ajustes" onclick="navigate('ajustes')" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium border border-transparent">
                 <i class="fa-solid fa-gear w-5"></i> Ajustes
-            </a>
+            </div>
         </nav>
         
         <div class="p-4 border-t border-slate-700/50">
@@ -75,88 +87,85 @@
     </aside>
 
     <main class="flex-1 flex flex-col h-full bg-slate-50 overflow-hidden relative">
-        <!-- Header -->
         <header class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center z-10 shadow-sm">
             <div>
-                <h2 class="text-2xl font-bold text-slate-800">Centro de Control</h2>
-                <p class="text-sm text-slate-500">Información en tiempo real del almacén central</p>
+                <h2 id="header-title" class="text-2xl font-bold text-slate-800">Centro de Control</h2>
+                <p id="header-subtitle" class="text-sm text-slate-500">Información en tiempo real del almacén central</p>
             </div>
             <div class="flex items-center gap-4">
-                <div class="relative">
+                <div class="relative mr-2">
                     <i class="fa-solid fa-bell text-slate-400 text-xl cursor-pointer hover:text-slate-600"></i>
                     <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-white">3</span>
                 </div>
-                <button onclick="toggleModal('modal-producto')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-semibold shadow-lg shadow-blue-500/30 transition flex items-center gap-2">
+                <!-- Este botón abre el modal limpio para crear un NUEVO producto -->
+                <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-semibold shadow-lg shadow-blue-500/30 transition flex items-center gap-2">
                     <i class="fa-solid fa-plus"></i> Nuevo Producto
                 </button>
             </div>
         </header>
 
-        <!-- Scrollable Content -->
+        <!-- Contenedor dinámico de Vistas (SPA) -->
         <div class="flex-1 overflow-y-auto p-8 custom-scroll relative">
-            <div id="loader" class="absolute inset-0 bg-slate-50 z-50 flex flex-col items-center justify-center">
+            <div id="loader" class="absolute inset-0 bg-slate-50 z-50 flex flex-col items-center justify-center hidden">
                 <i class="fa-solid fa-circle-notch fa-spin text-4xl text-blue-600 mb-4"></i>
-                <p class="text-slate-500 font-medium">Sincronizando con base de datos industrial...</p>
+                <p class="text-slate-500 font-medium">Sincronizando datos...</p>
             </div>
 
-            <!-- KPIs -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 text-xl">
-                        <i class="fa-solid fa-box"></i>
+            <!-- VISTA: DASHBOARD -->
+            <div id="view-dashboard" class="view-section active">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 text-xl"><i class="fa-solid fa-box"></i></div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Productos</p>
+                            <h3 id="kpi-prod" class="text-2xl font-extrabold text-slate-800 mt-1">--</h3>
+                        </div>
                     </div>
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Productos</p>
-                        <h3 id="kpi-prod" class="text-2xl font-extrabold text-slate-800 mt-1">--</h3>
+                    <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center text-red-600 text-xl"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Quiebres de Stock</p>
+                            <h3 id="kpi-crit" class="text-2xl font-extrabold text-red-600 mt-1">--</h3>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center text-red-600 text-xl">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 text-xl"><i class="fa-solid fa-arrow-turn-down"></i></div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Entradas Globales</p>
+                            <h3 id="kpi-ent" class="text-2xl font-extrabold text-slate-800 mt-1">--</h3>
+                        </div>
                     </div>
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Quiebres de Stock</p>
-                        <h3 id="kpi-crit" class="text-2xl font-extrabold text-red-600 mt-1">--</h3>
+                    <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600 text-xl"><i class="fa-solid fa-arrow-turn-up"></i></div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Salidas Globales</p>
+                            <h3 id="kpi-sal" class="text-2xl font-extrabold text-slate-800 mt-1">--</h3>
+                        </div>
                     </div>
                 </div>
 
-                <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 text-xl">
-                        <i class="fa-solid fa-sack-dollar"></i>
-                    </div>
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Valor Inventario</p>
-                        <h3 id="kpi-val" class="text-2xl font-extrabold text-slate-800 mt-1">--</h3>
-                    </div>
-                </div>
-
-                <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600 text-xl">
-                        <i class="fa-solid fa-truck-fast"></i>
-                    </div>
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Mov. Hoy</p>
-                        <h3 class="text-2xl font-extrabold text-slate-800 mt-1">1,452</h3>
+                <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-sm h-[400px] flex flex-col">
+                    <h3 class="font-bold text-lg text-slate-800 mb-2">Distribución de Inventario</h3>
+                    <p class="text-sm text-slate-500 mb-4">Stock físico por producto (Top 10)</p>
+                    <div class="flex-1 relative w-full flex items-center justify-center">
+                        <canvas id="categoryChart"></canvas>
                     </div>
                 </div>
             </div>
 
-            <!-- Gráficas y Tabla -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
-                <!-- Tabla CRUD -->
-                <div class="lg:col-span-2 glass-card rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[500px]">
-                    <div class="p-6 border-b border-slate-100 flex justify-between items-center">
-                        <h3 class="font-bold text-lg text-slate-800">Inventario Activo</h3>
+            <!-- VISTA: INVENTARIO (TABLA) -->
+            <div id="view-inventario" class="view-section">
+                <div class="glass-card rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[700px]">
+                    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-white rounded-t-2xl">
+                        <h3 class="font-bold text-lg text-slate-800">Catálogo de Productos</h3>
                         <div class="relative">
                             <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
                             <input type="text" placeholder="Buscar por SKU o Nombre..." class="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-64">
                         </div>
                     </div>
-                    <div class="flex-1 overflow-auto custom-scroll p-0">
+                    <div class="flex-1 overflow-auto custom-scroll p-0 bg-white rounded-b-2xl">
                         <table class="w-full text-left border-collapse">
-                            <thead class="bg-slate-50 sticky top-0 z-10 border-b border-slate-200">
+                            <thead class="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 shadow-sm">
                                 <tr>
                                     <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Producto</th>
                                     <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Categoría</th>
@@ -164,153 +173,199 @@
                                     <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="table-body" class="divide-y divide-slate-100 bg-white">
+                            <tbody id="table-body" class="divide-y divide-slate-100">
                                 <!-- Filas dinámicas -->
                             </tbody>
                         </table>
                     </div>
                 </div>
+            </div>
 
-                <!-- Chart.js -->
-                <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-sm h-[500px] flex flex-col">
-                    <h3 class="font-bold text-lg text-slate-800 mb-2">Distribución por Categoría</h3>
-                    <p class="text-sm text-slate-500 mb-6">Unidades físicas en almacén</p>
-                    <div class="flex-1 relative w-full flex items-center justify-center">
-                        <canvas id="categoryChart"></canvas>
-                    </div>
+            <!-- VISTAS PLACEHOLDERS (Para navegación futura) -->
+            <div id="view-movimientos" class="view-section">
+                <div class="flex flex-col items-center justify-center h-96 text-slate-400">
+                    <i class="fa-solid fa-truck-ramp-box text-6xl mb-4 text-slate-300"></i>
+                    <h2 class="text-2xl font-bold">Módulo de Movimientos</h2>
+                    <p>Próximamente disponible en la V3.0</p>
+                </div>
+            </div>
+            
+            <div id="view-finanzas" class="view-section">
+                <div class="flex flex-col items-center justify-center h-96 text-slate-400">
+                    <i class="fa-solid fa-chart-line text-6xl mb-4 text-slate-300"></i>
+                    <h2 class="text-2xl font-bold">Módulo Financiero</h2>
+                    <p>En construcción</p>
+                </div>
+            </div>
+            
+            <div id="view-usuarios" class="view-section">
+                <div class="flex flex-col items-center justify-center h-96 text-slate-400">
+                    <i class="fa-solid fa-users-gear text-6xl mb-4 text-slate-300"></i>
+                    <h2 class="text-2xl font-bold">Gestión de Usuarios</h2>
+                </div>
+            </div>
+            
+            <div id="view-ajustes" class="view-section">
+                <div class="flex flex-col items-center justify-center h-96 text-slate-400">
+                    <i class="fa-solid fa-sliders text-6xl mb-4 text-slate-300"></i>
+                    <h2 class="text-2xl font-bold">Configuración del Sistema</h2>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- Modal Nuevo Producto (CRUD) -->
+    <!-- Modal Nuevo/Editar Producto (CRUD) -->
     <div id="modal-producto" class="modal fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all">
             <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                <h3 class="font-bold text-lg text-slate-800">Agregar Nuevo Producto</h3>
-                <button onclick="toggleModal('modal-producto')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <h3 id="modal-title" class="font-bold text-lg text-slate-800">Agregar Nuevo Producto</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             <div class="p-6 space-y-4">
+                <!-- ID Oculto para saber si estamos editando -->
+                <input type="hidden" id="prod-id">
+                
                 <div class="grid grid-cols-2 gap-4">
                     <div class="col-span-2">
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre del Producto</label>
-                        <input type="text" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500" placeholder="Ej. Esmeriladora Angular">
+                        <input type="text" id="prod-nombre" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition" placeholder="Ej. Esmeriladora Angular">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">SKU</label>
-                        <input type="text" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500" placeholder="REY-00000">
+                        <input type="text" id="prod-sku" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition" placeholder="REY-00000">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Categoría</label>
-                        <select class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
-                            <option>Herramienta Eléctrica</option>
-                            <option>Seguridad Industrial</option>
+                        <select id="prod-cat" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white transition">
+                            <option value="">Cargando...</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Stock Inicial</label>
-                        <input type="number" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500" value="0">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Stock Actual</label>
+                        <input type="number" id="prod-stock" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition" value="0">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Stock Mínimo</label>
-                        <input type="number" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500" value="20">
+                        <input type="number" id="prod-min" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition" value="5">
                     </div>
                 </div>
             </div>
             <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-                <button onclick="toggleModal('modal-producto')" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 rounded-lg transition">Cancelar</button>
-                <button class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-md transition">Guardar Producto</button>
+                <button onclick="closeModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 rounded-lg transition">Cancelar</button>
+                <button onclick="saveProduct()" id="btn-save" class="px-5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-md transition flex items-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i> Guardar Producto
+                </button>
             </div>
         </div>
     </div>
 
     <script>
-        // Utilidades de formato globales
-        const formatMoney = (amount) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
-        const formatNumber = (num) => new Intl.NumberFormat('es-MX').format(num);
+        // Utilidades de notificaciones profesionales
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
 
-        function toggleModal(id) {
-            const modal = document.getElementById(id);
-            modal.classList.toggle('active');
+        // Configuración de Navegación (SPA)
+        const vistasInfo = {
+            'dashboard': { titulo: 'Centro de Control', subtitulo: 'Información en tiempo real del almacén' },
+            'inventario': { titulo: 'Gestión de Inventario', subtitulo: 'Control, edición y creación de productos' },
+            'movimientos': { titulo: 'Historial de Movimientos', subtitulo: 'Entradas, salidas y transferencias' },
+            'finanzas': { titulo: 'Reportes Financieros', subtitulo: 'Valorización del almacén' },
+            'usuarios': { titulo: 'Administración de Usuarios', subtitulo: 'Permisos y roles del sistema' },
+            'ajustes': { titulo: 'Configuraciones', subtitulo: 'Preferencias generales' }
+        };
+
+        function navigate(viewId) {
+            // Ocultar todas las vistas
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            // Quitar clase active del menú
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active', 'text-blue-400', 'bg-blue-600/10'));
+            
+            // Mostrar la vista seleccionada
+            document.getElementById(`view-${viewId}`).classList.add('active');
+            
+            // Activar el botón del menú
+            const navBtn = document.getElementById(`nav-${viewId}`);
+            if(navBtn) navBtn.classList.add('active');
+            
+            // Actualizar Títulos del Header
+            document.getElementById('header-title').innerText = vistasInfo[viewId].titulo;
+            document.getElementById('header-subtitle').innerText = vistasInfo[viewId].subtitulo;
         }
 
-        // IIFE para proteger el scope y evitar el error "Identifier supabase has already been declared"
+        // --- SISTEMA BASE DE DATOS --- //
         (async function() {
-            const loader = document.getElementById('loader');
-            
-            // 🚨 PROTECCIÓN CONTRA DOBLE CLIC (file:///) 🚨
+            // Protección contra archivos locales
             if (window.location.protocol === 'file:') {
-                loader.innerHTML = `
-                    <div class="bg-white p-8 rounded-2xl border border-red-200 text-center max-w-md shadow-2xl">
-                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fa-solid fa-triangle-exclamation text-3xl text-red-600"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-slate-800 mb-2">Bloqueo de Seguridad (file://)</h3>
-                        <p class="text-sm text-red-600 font-medium mb-4 bg-red-50 p-3 rounded-lg border border-red-100">
-                            Estás abriendo el archivo directamente desde tu disco duro (Descargas).<br><br>
-                            Los navegadores bloquean las conexiones a bases de datos desde archivos locales.
-                        </p>
-                        <p class="text-sm text-slate-700 font-bold bg-amber-100 p-3 rounded-lg border border-amber-200 shadow-inner">
-                            👉 SOLUCIÓN: Guarda el archivo, súbelo a GitHub Pages y ábrelo desde tu enlace web (.github.io). ¡Ahí sí funcionará!
-                        </p>
-                    </div>
-                `;
-                loader.style.backgroundColor = 'rgba(241, 245, 249, 0.95)';
-                return; // Detenemos la app aquí para que no de errores en consola
+                document.body.innerHTML = `<div style="padding:50px; text-align:center; font-family:sans-serif;">
+                    <h1 style="color:red;">Error de Seguridad</h1>
+                    <p>Por favor, sube este archivo a tu servidor o GitHub Pages. Los navegadores bloquean las bases de datos en archivos locales.</p>
+                </div>`;
+                return;
             }
 
-            const supabaseUrl = 'https://wepsvgqdctsgtnizhbvc.supabase.co';
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlcHN2Z3FkY3RzZ3RuaXpoYnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2NTYxMTMsImV4cCI6MjA5OTIzMjExM30.Sce0_kT7eT1AGy-o_-7w4t_Rq9TowBHDN-dWK8nmEOA';
-            
-            // Usamos un nombre de variable distinto (dbClient) en lugar de supabase para no chocar con la librería
-            const dbClient = supabase.createClient(supabaseUrl, supabaseKey);
+            // Evitar declaración duplicada
+            if (typeof window.dbClient === 'undefined') {
+                window.dbClient = supabase.createClient(
+                    'https://wepsvgqdctsgtnizhbvc.supabase.co', 
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlcHN2Z3FkY3RzZ3RuaXpoYnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2NTYxMTMsImV4cCI6MjA5OTIzMjExM30.Sce0_kT7eT1AGy-o_-7w4t_Rq9TowBHDN-dWK8nmEOA'
+                );
+            }
 
-            async function initApp() {
+            const db = window.dbClient;
+            let currentProducts = []; // Estado local
+            let chartInstance = null;
+
+            // Mostrar el loader global
+            function toggleLoader(show) {
+                const loader = document.getElementById('loader');
+                if(show) { loader.classList.remove('hidden'); loader.classList.add('flex'); }
+                else { loader.classList.add('hidden'); loader.classList.remove('flex'); }
+            }
+
+            // Cargar Categorías para el formulario
+            async function loadCategories() {
+                const { data, error } = await db.from('categorias').select('*');
+                if(error) return;
+                const select = document.getElementById('prod-cat');
+                select.innerHTML = '<option value="">Selecciona una categoría...</option>' + 
+                    data.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+            }
+
+            // Cargar Datos Principales (Dashboard y Tabla)
+            async function refreshData() {
+                toggleLoader(true);
                 try {
-                    // 1. Obtener KPIs (Dashboard Stats)
-                    const { data: stats, error: statErr } = await dbClient.rpc('get_dashboard_stats');
-                    if (statErr) throw new Error("Error SQL get_dashboard_stats: " + statErr.message);
+                    // 1. KPIs
+                    const { data: stats } = await db.rpc('get_dashboard_stats');
+                    document.getElementById('kpi-prod').innerText = stats?.total_productos || 0;
+                    document.getElementById('kpi-crit').innerText = stats?.stock_bajo || 0;
+                    document.getElementById('kpi-ent').innerText = stats?.total_entradas || 0;
+                    document.getElementById('kpi-sal').innerText = stats?.total_salidas || 0;
 
-                    // Animación de números para neuromarketing
-                    document.getElementById('kpi-prod').innerText = formatNumber(stats.total_productos);
-                    document.getElementById('kpi-crit').innerText = formatNumber(stats.stock_bajo);
-                    document.getElementById('kpi-val').innerText = formatMoney(stats.valor_inventario);
-
-                    // 2. Renderizar Gráfica
-                    renderChart(stats.categorias);
-
-                    // 3. Cargar Tabla de Productos
-                    const { data: prods, error: prodErr } = await dbClient
-                        .from('productos')
+                    // 2. Tabla de Productos (Leemos la data real)
+                    const { data: prods, error } = await db.from('productos')
                         .select('*, categorias(nombre)')
-                        .order('stock_actual', { ascending: true }) // Mostrar críticos primero
-                        .limit(50);
+                        .order('stock_actual', { ascending: true }); // Críticos primero
                     
-                    if (prodErr) throw new Error("Error en tabla productos: " + prodErr.message);
-                    renderTable(prods);
-
-                    // Ocultar Loader suavemente
-                    setTimeout(() => {
-                        loader.style.opacity = '0';
-                        loader.style.transition = 'opacity 0.5s ease';
-                        setTimeout(() => loader.remove(), 500);
-                    }, 800);
+                    if (error) throw error;
+                    currentProducts = prods || [];
+                    renderTable(currentProducts);
+                    renderChart(currentProducts);
 
                 } catch (err) {
-                    console.error("Error inicializando la app:", err);
-                    loader.innerHTML = `
-                        <div class="bg-white p-8 rounded-2xl border border-red-200 text-center max-w-md shadow-2xl">
-                            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <i class="fa-solid fa-database text-3xl text-red-600"></i>
-                            </div>
-                            <h3 class="text-xl font-bold text-slate-800 mb-2">Base de Datos No Lista</h3>
-                            <p class="text-sm text-red-600 font-medium mb-4 bg-red-50 p-3 rounded-lg border border-red-100">${err.message}</p>
-                            <p class="text-xs text-slate-700 font-bold">
-                                👉 Asegúrate de haber ejecutado el script SQL "Base de Datos Reyma Demo" en tu Supabase.
-                            </p>
-                        </div>
-                    `;
-                    loader.style.backgroundColor = 'rgba(241, 245, 249, 0.95)';
+                    Toast.fire({ icon: 'error', title: 'Error al sincronizar datos' });
+                    console.error(err);
+                } finally {
+                    toggleLoader(false);
                 }
             }
 
@@ -319,8 +374,7 @@
                 let html = '';
 
                 productos.forEach(p => {
-                    let statusColor = '';
-                    let statusText = '';
+                    let statusColor = ''; let statusText = '';
                     let percent = Math.min((p.stock_actual / p.stock_minimo) * 100, 100);
                     
                     if (p.stock_actual === 0) {
@@ -331,14 +385,14 @@
                         statusColor = 'bg-emerald-500'; statusText = 'Óptimo';
                     }
 
-                    const catNombre = p.categorias ? p.categorias.nombre : 'Sin categoría';
+                    const catNombre = p.categorias ? p.categorias.nombre : 'General';
 
                     html += `
-                        <tr class="hover:bg-slate-50 transition cursor-pointer group">
+                        <tr class="hover:bg-slate-50 transition group">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-10 w-10 relative">
-                                        <img class="h-10 w-10 rounded-lg object-cover border border-slate-200 shadow-sm" src="${p.imagen_url}" alt="">
+                                    <div class="flex-shrink-0 h-10 w-10 bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 relative">
+                                        <i class="fa-solid fa-box-open"></i>
                                         ${p.stock_actual === 0 ? '<span class="absolute -top-1 -right-1 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500 shadow-sm"></span></span>' : ''}
                                     </div>
                                     <div class="ml-4">
@@ -348,24 +402,22 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                                <span class="px-3 py-1 inline-flex text-xs font-bold rounded-full bg-slate-100 text-slate-600 border border-slate-200">
                                     ${catNombre}
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center gap-3">
-                                    <div class="text-sm font-bold ${p.stock_actual <= p.stock_minimo ? 'text-red-600' : 'text-slate-700'} w-12 text-right">${p.stock_actual} <span class="text-[10px] text-slate-400 font-normal">/ ${p.stock_minimo}</span></div>
+                                    <div class="text-sm font-bold ${p.stock_actual <= p.stock_minimo ? 'text-red-600' : 'text-slate-700'} w-12 text-right">${p.stock_actual}</div>
                                     <div class="flex-1 min-w-[100px]">
-                                        <div class="progress-bar-bg">
-                                            <div class="progress-bar-fill ${statusColor}" style="width: ${percent}%"></div>
-                                        </div>
+                                        <div class="progress-bar-bg"><div class="progress-bar-fill ${statusColor}" style="width: ${percent}%"></div></div>
                                         <div class="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-wide">${statusText}</div>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <button class="text-blue-600 hover:text-white hover:bg-blue-600 bg-blue-50 w-8 h-8 rounded-lg opacity-0 group-hover:opacity-100 transition duration-200" title="Editar"><i class="fa-solid fa-pen text-xs"></i></button>
-                                <button class="text-slate-600 hover:text-white hover:bg-slate-800 bg-slate-100 w-8 h-8 rounded-lg opacity-0 group-hover:opacity-100 transition duration-200 ml-1" title="Ajuste Rápido"><i class="fa-solid fa-boxes-stacked text-xs"></i></button>
+                                <button onclick="openModal('${p.id}')" class="text-blue-600 hover:text-white hover:bg-blue-600 bg-blue-50 w-8 h-8 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen text-xs"></i></button>
+                                <button onclick="deleteProduct('${p.id}')" class="text-red-600 hover:text-white hover:bg-red-600 bg-red-50 w-8 h-8 rounded-lg transition ml-1" title="Eliminar"><i class="fa-solid fa-trash text-xs"></i></button>
                             </td>
                         </tr>
                     `;
@@ -373,42 +425,135 @@
                 tbody.innerHTML = html;
             }
 
-            function renderChart(categoriasData) {
+            function renderChart(productos) {
                 const ctx = document.getElementById('categoryChart').getContext('2d');
+                // Tomar los top 10 productos con más stock para la gráfica
+                const topProducts = [...productos].sort((a,b) => b.stock_actual - a.stock_actual).slice(0, 10);
                 
-                const labels = categoriasData ? categoriasData.map(c => c.nombre) : [];
-                const data = categoriasData ? categoriasData.map(c => c.total_stock) : [];
-                const colors = categoriasData ? categoriasData.map(c => c.color) : [];
-
-                new Chart(ctx, {
+                if(chartInstance) chartInstance.destroy();
+                
+                chartInstance = new Chart(ctx, {
                     type: 'doughnut',
                     data: {
-                        labels: labels,
+                        labels: topProducts.map(p => p.nombre),
                         datasets: [{
-                            data: data,
-                            backgroundColor: colors,
-                            borderWidth: 0,
-                            hoverOffset: 10
+                            data: topProducts.map(p => p.stock_actual),
+                            backgroundColor: ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#10b981', '#34d399', '#f59e0b', '#fbbf24', '#ef4444', '#f87171'],
+                            borderWidth: 0
                         }]
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        cutout: '75%',
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: { padding: 20, usePointStyle: true, pointStyle: 'circle', font: { family: "'Inter', sans-serif", size: 11, weight: '600' }, color: '#64748b' }
-                            },
-                            tooltip: { backgroundColor: '#1e293b', titleFont: { family: "'Inter', sans-serif", size: 13 }, bodyFont: { family: "'Inter', sans-serif", size: 12, weight: 'bold' }, padding: 12, cornerRadius: 8, boxPadding: 6 }
-                        },
-                        animation: { animateScale: true, animateRotate: true }
-                    }
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: {family: 'Inter', size: 11} } } } }
                 });
             }
 
+            // Exponer funciones globalmente
+            window.openModal = function(id = null) {
+                const modal = document.getElementById('modal-producto');
+                const title = document.getElementById('modal-title');
+                
+                if (id) {
+                    // Modo Edición
+                    title.innerText = 'Editar Producto';
+                    const prod = currentProducts.find(p => p.id === id);
+                    if(prod) {
+                        document.getElementById('prod-id').value = prod.id;
+                        document.getElementById('prod-nombre').value = prod.nombre;
+                        document.getElementById('prod-sku').value = prod.sku;
+                        document.getElementById('prod-cat').value = prod.categoria_id || '';
+                        document.getElementById('prod-stock').value = prod.stock_actual;
+                        document.getElementById('prod-min').value = prod.stock_minimo;
+                    }
+                } else {
+                    // Modo Creación
+                    title.innerText = 'Agregar Nuevo Producto';
+                    document.getElementById('prod-id').value = '';
+                    document.getElementById('prod-nombre').value = '';
+                    document.getElementById('prod-sku').value = '';
+                    document.getElementById('prod-cat').value = '';
+                    document.getElementById('prod-stock').value = '0';
+                    document.getElementById('prod-min').value = '5';
+                }
+                
+                modal.classList.add('active');
+            };
+
+            window.closeModal = function() {
+                document.getElementById('modal-producto').classList.remove('active');
+            };
+
+            window.saveProduct = async function() {
+                const id = document.getElementById('prod-id').value;
+                const nombre = document.getElementById('prod-nombre').value;
+                const sku = document.getElementById('prod-sku').value;
+                const categoria_id = document.getElementById('prod-cat').value;
+                const stock_actual = parseInt(document.getElementById('prod-stock').value) || 0;
+                const stock_minimo = parseInt(document.getElementById('prod-min').value) || 5;
+
+                // Validación simple
+                if(!nombre || !sku) {
+                    Toast.fire({ icon: 'warning', title: 'Nombre y SKU son obligatorios' });
+                    return;
+                }
+
+                const btn = document.getElementById('btn-save');
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+                btn.disabled = true;
+
+                const payload = { nombre, sku, stock_actual, stock_minimo };
+                if (categoria_id) payload.categoria_id = categoria_id;
+
+                try {
+                    if (id) {
+                        // UPDATE
+                        const { error } = await db.from('productos').update(payload).eq('id', id);
+                        if(error) throw error;
+                        Toast.fire({ icon: 'success', title: 'Producto actualizado' });
+                    } else {
+                        // INSERT
+                        const { error } = await db.from('productos').insert([payload]);
+                        if(error) throw error;
+                        Toast.fire({ icon: 'success', title: 'Producto creado' });
+                    }
+                    
+                    window.closeModal();
+                    await refreshData(); // Recargar todo
+
+                } catch (err) {
+                    Toast.fire({ icon: 'error', title: 'Error al guardar (Verifica que el SKU sea único)' });
+                    console.error(err);
+                } finally {
+                    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Producto';
+                    btn.disabled = false;
+                }
+            };
+
+            window.deleteProduct = function(id) {
+                Swal.fire({
+                    title: '¿Eliminar producto?',
+                    text: "Esta acción no se puede deshacer.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+                        try {
+                            const { error } = await db.from('productos').delete().eq('id', id);
+                            if(error) throw error;
+                            Toast.fire({ icon: 'success', title: 'Producto eliminado' });
+                            await refreshData();
+                        } catch (err) {
+                            Toast.fire({ icon: 'error', title: 'Error al eliminar (Quizás tenga movimientos registrados)' });
+                        }
+                    }
+                })
+            };
+
             // Iniciar aplicación
-            initApp();
+            await loadCategories();
+            await refreshData();
         })();
     </script>
 </body>
