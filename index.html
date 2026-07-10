@@ -3,120 +3,390 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INVENTARIOSPRO | Enterprise</title>
+    <title>InventariosPRO | Reyma Enterprise</title>
+    
+    <!-- Librerías Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .sidebar-item:hover { background: rgba(255,255,255,0.05); border-left: 4px solid #3b82f6; }
-        .active-item { background: rgba(255,255,255,0.1); border-left: 4px solid #3b82f6; }
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .sidebar { background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%); }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .progress-bar-bg { background-color: #e2e8f0; border-radius: 9999px; overflow: hidden; height: 6px; width: 100%; margin-top: 4px; }
+        .progress-bar-fill { height: 100%; border-radius: 9999px; transition: width 0.5s ease-in-out; }
+        
+        /* Custom Scrollbar para la tabla */
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .modal { display: none; }
+        .modal.active { display: flex; animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
-<body class="flex h-screen overflow-hidden">
+<body class="flex h-screen overflow-hidden text-slate-800">
 
-    <!-- SIDEBAR -->
-    <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col p-6">
-        <div class="text-white text-2xl font-bold mb-10 tracking-tighter">Reyma<span class="text-blue-500">Pro</span></div>
-        <nav class="flex-1 space-y-2">
-            <div class="sidebar-item active-item p-3 cursor-pointer text-white rounded-r">Dashboard</div>
-            <div class="sidebar-item p-3 cursor-pointer">Inventario</div>
-            <div class="sidebar-item p-3 cursor-pointer">Reportes</div>
-            <div class="sidebar-item p-3 cursor-pointer">Configuración</div>
+    <aside class="sidebar w-64 h-full flex flex-col text-slate-300 flex-shrink-0 shadow-2xl z-20">
+        <div class="p-6 pb-2 border-b border-slate-700/50">
+            <h1 class="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+                <i class="fa-solid fa-cube text-blue-500"></i>
+                Reyma<span class="text-blue-500">Pro</span>
+            </h1>
+            <p class="text-xs text-slate-500 mt-1 uppercase tracking-wider font-semibold">Enterprise Edition</p>
+        </div>
+        
+        <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+            <a href="#" class="flex items-center gap-3 px-3 py-2.5 bg-blue-600/10 text-blue-400 rounded-lg font-medium transition border border-blue-500/20">
+                <i class="fa-solid fa-chart-pie w-5"></i> Dashboard
+            </a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-800/50 hover:text-white rounded-lg font-medium transition">
+                <i class="fa-solid fa-boxes-stacked w-5"></i> Inventario
+            </a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-800/50 hover:text-white rounded-lg font-medium transition">
+                <i class="fa-solid fa-arrow-right-arrow-left w-5"></i> Movimientos
+            </a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-800/50 hover:text-white rounded-lg font-medium transition">
+                <i class="fa-solid fa-file-invoice-dollar w-5"></i> Finanzas
+            </a>
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-6 mb-2 px-3">Administración</p>
+            <a href="#" class="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-800/50 hover:text-white rounded-lg font-medium transition">
+                <i class="fa-solid fa-users w-5"></i> Usuarios
+            </a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-800/50 hover:text-white rounded-lg font-medium transition">
+                <i class="fa-solid fa-gear w-5"></i> Ajustes
+            </a>
         </nav>
-        <div class="text-xs text-slate-500">v 2.0.4 - Enterprise</div>
-    </aside>
-
-    <!-- MAIN -->
-    <main class="flex-1 overflow-y-auto p-8">
-        <header class="flex justify-between items-center mb-8">
-            <div>
-                <h1 class="text-2xl font-bold text-slate-800">Panel de Control</h1>
-                <p class="text-slate-500">Resumen operativo al instante</p>
-            </div>
-            <button class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition">
-                + Nuevo Producto
-            </button>
-        </header>
-
-        <!-- KPIS -->
-        <div class="grid grid-cols-4 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Productos</p>
-                <div id="kpi-prod" class="text-3xl font-bold mt-2">--</div>
-            </div>
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Stock Crítico</p>
-                <div id="kpi-crit" class="text-3xl font-bold mt-2 text-red-500">--</div>
-            </div>
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Entradas mes</p>
-                <div id="kpi-ent" class="text-3xl font-bold mt-2 text-green-500">--</div>
-            </div>
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Salidas mes</p>
-                <div id="kpi-sal" class="text-3xl font-bold mt-2 text-amber-500">--</div>
+        
+        <div class="p-4 border-t border-slate-700/50">
+            <div class="flex items-center gap-3">
+                <img src="https://ui-avatars.com/api/?name=Admin+Reyma&background=0D8ABC&color=fff" class="w-10 h-10 rounded-full border-2 border-slate-700">
+                <div>
+                    <p class="text-sm font-bold text-white">Gerente General</p>
+                    <p class="text-xs text-slate-400">admin@reyma.com</p>
+                </div>
             </div>
         </div>
+    </aside>
 
-        <!-- CONTENT GRID -->
-        <div class="grid grid-cols-3 gap-8">
-            <div class="col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <h3 class="font-bold text-lg mb-4">Productos Activos</h3>
-                <table class="w-full">
-                    <thead><tr class="text-left text-slate-400 text-xs uppercase"><th class="pb-4">Producto</th><th class="pb-4">SKU</th><th class="pb-4">Stock</th><th class="pb-4">Estado</th></tr></thead>
-                    <tbody id="prod-body"></tbody>
-                </table>
+    <main class="flex-1 flex flex-col h-full bg-slate-50 overflow-hidden relative">
+        <!-- Header -->
+        <header class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center z-10 shadow-sm">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800">Centro de Control</h2>
+                <p class="text-sm text-slate-500">Información en tiempo real del almacén central</p>
             </div>
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <h3 class="font-bold text-lg mb-4">Stock por Categoría</h3>
-                <canvas id="inventoryChart"></canvas>
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <i class="fa-solid fa-bell text-slate-400 text-xl cursor-pointer hover:text-slate-600"></i>
+                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-white">3</span>
+                </div>
+                <button onclick="toggleModal('modal-producto')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-semibold shadow-lg shadow-blue-500/30 transition flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Nuevo Producto
+                </button>
+            </div>
+        </header>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-8 custom-scroll relative">
+            <div id="loader" class="absolute inset-0 bg-slate-50 z-50 flex flex-col items-center justify-center">
+                <i class="fa-solid fa-circle-notch fa-spin text-4xl text-blue-600 mb-4"></i>
+                <p class="text-slate-500 font-medium">Sincronizando con base de datos industrial...</p>
+            </div>
+
+            <!-- KPIs -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 text-xl">
+                        <i class="fa-solid fa-box"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Productos</p>
+                        <h3 id="kpi-prod" class="text-2xl font-extrabold text-slate-800 mt-1">--</h3>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center text-red-600 text-xl">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Quiebres de Stock</p>
+                        <h3 id="kpi-crit" class="text-2xl font-extrabold text-red-600 mt-1">--</h3>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 text-xl">
+                        <i class="fa-solid fa-sack-dollar"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Valor Inventario</p>
+                        <h3 id="kpi-val" class="text-2xl font-extrabold text-slate-800 mt-1">--</h3>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600 text-xl">
+                        <i class="fa-solid fa-truck-fast"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Mov. Hoy</p>
+                        <h3 class="text-2xl font-extrabold text-slate-800 mt-1">1,452</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráficas y Tabla -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Tabla CRUD -->
+                <div class="lg:col-span-2 glass-card rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[500px]">
+                    <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                        <h3 class="font-bold text-lg text-slate-800">Inventario Activo</h3>
+                        <div class="relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
+                            <input type="text" placeholder="Buscar por SKU o Nombre..." class="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-64">
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-auto custom-scroll p-0">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-50 sticky top-0 z-10 border-b border-slate-200">
+                                <tr>
+                                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Producto</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Categoría</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Estado del Stock</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body" class="divide-y divide-slate-100 bg-white">
+                                <!-- Filas dinámicas -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Chart.js -->
+                <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-sm h-[500px] flex flex-col">
+                    <h3 class="font-bold text-lg text-slate-800 mb-2">Distribución por Categoría</h3>
+                    <p class="text-sm text-slate-500 mb-6">Unidades físicas en almacén</p>
+                    <div class="flex-1 relative w-full flex items-center justify-center">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
 
+    <!-- Modal Nuevo Producto (CRUD) -->
+    <div id="modal-producto" class="modal fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-lg text-slate-800">Agregar Nuevo Producto</h3>
+                <button onclick="toggleModal('modal-producto')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre del Producto</label>
+                        <input type="text" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500" placeholder="Ej. Esmeriladora Angular">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">SKU</label>
+                        <input type="text" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500" placeholder="REY-00000">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Categoría</label>
+                        <select class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                            <option>Herramienta Eléctrica</option>
+                            <option>Seguridad Industrial</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Stock Inicial</label>
+                        <input type="number" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500" value="0">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Stock Mínimo</label>
+                        <input type="number" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500" value="20">
+                    </div>
+                </div>
+            </div>
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                <button onclick="toggleModal('modal-producto')" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 rounded-lg transition">Cancelar</button>
+                <button class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-md transition">Guardar Producto</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        const supabase = supabase.createClient(
-            'https://wepsvgqdctsgtnizhbvc.supabase.co', 
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlcHN2Z3FkY3RzZ3RuaXpoYnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2NTYxMTMsImV4cCI6MjA5OTIzMjExM30.Sce0_kT7eT1AGy-o_-7w4t_Rq9TowBHDN-dWK8nmEOA'
-        );
+        // Supabase Initialization
+        const supabaseUrl = 'https://wepsvgqdctsgtnizhbvc.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlcHN2Z3FkY3RzZ3RuaXpoYnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2NTYxMTMsImV4cCI6MjA5OTIzMjExM30.Sce0_kT7eT1AGy-o_-7w4t_Rq9TowBHDN-dWK8nmEOA';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-        async function init() {
-            const { data: stats } = await supabase.rpc('get_dashboard_stats');
-            document.getElementById('kpi-prod').innerText = stats.total_productos;
-            document.getElementById('kpi-crit').innerText = stats.stock_bajo;
-            document.getElementById('kpi-ent').innerText = stats.total_entradas;
-            document.getElementById('kpi-sal').innerText = stats.total_salidas;
+        // Utilidades de formato
+        const formatMoney = (amount) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
+        const formatNumber = (num) => new Intl.NumberFormat('es-MX').format(num);
 
-            const { data: prods } = await supabase.from('productos').select('*');
-            const tbody = document.getElementById('prod-body');
-            
-            tbody.innerHTML = prods.map(p => {
-                const isCrit = p.stock_actual <= p.stock_minimo;
-                return `
-                    <tr class="border-t border-slate-100 hover:bg-slate-50 transition">
-                        <td class="py-4 font-medium">${p.nombre}</td>
-                        <td class="text-slate-500 text-sm">${p.sku}</td>
-                        <td class="font-bold">${p.stock_actual}</td>
-                        <td>
-                            <span class="px-3 py-1 rounded-full text-xs font-bold ${isCrit ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">
-                                ${isCrit ? 'Bajo' : 'Óptimo'}
+        function toggleModal(id) {
+            const modal = document.getElementById(id);
+            modal.classList.toggle('active');
+        }
+
+        async function initApp() {
+            try {
+                // 1. Obtener KPIs (Dashboard Stats)
+                const { data: stats, error: statErr } = await supabase.rpc('get_dashboard_stats');
+                if (statErr) throw statErr;
+
+                // Animación de números para neuromarketing
+                document.getElementById('kpi-prod').innerText = formatNumber(stats.total_productos);
+                document.getElementById('kpi-crit').innerText = formatNumber(stats.stock_bajo);
+                document.getElementById('kpi-val').innerText = formatMoney(stats.valor_inventario);
+
+                // 2. Renderizar Gráfica
+                renderChart(stats.categorias);
+
+                // 3. Cargar Tabla de Productos (Top 50 para la demo)
+                const { data: prods, error: prodErr } = await supabase
+                    .from('productos')
+                    .select('*, categorias(nombre)')
+                    .order('stock_actual', { ascending: true }) // Mostrar los críticos primero
+                    .limit(50);
+                
+                if (prodErr) throw prodErr;
+                renderTable(prods);
+
+                // Ocultar Loader suavemente
+                setTimeout(() => {
+                    const loader = document.getElementById('loader');
+                    loader.style.opacity = '0';
+                    loader.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => loader.remove(), 500);
+                }, 800); // Pequeño delay intencional para mostrar que "está cargando masivamente"
+
+            } catch (err) {
+                console.error("Error inicializando la app:", err);
+                alert("Error conectando a la base de datos industrial. Revisa la consola.");
+            }
+        }
+
+        // Renderizado del Módulo Visual de Inventario
+        function renderTable(productos) {
+            const tbody = document.getElementById('table-body');
+            let html = '';
+
+            productos.forEach(p => {
+                // Lógica del semáforo visual
+                let statusColor = '';
+                let statusText = '';
+                let percent = Math.min((p.stock_actual / p.stock_minimo) * 100, 100);
+                
+                if (p.stock_actual === 0) {
+                    statusColor = 'bg-red-500'; statusText = 'Agotado'; percent = 0;
+                } else if (p.stock_actual <= p.stock_minimo) {
+                    statusColor = 'bg-amber-500'; statusText = 'Crítico';
+                } else {
+                    statusColor = 'bg-emerald-500'; statusText = 'Óptimo';
+                }
+
+                html += `
+                    <tr class="hover:bg-slate-50 transition cursor-pointer group">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10 relative">
+                                    <img class="h-10 w-10 rounded-lg object-cover border border-slate-200" src="${p.imagen_url}" alt="">
+                                    ${p.stock_actual === 0 ? '<span class="absolute -top-1 -right-1 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>' : ''}
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-bold text-slate-800">${p.nombre}</div>
+                                    <div class="text-xs text-slate-500">${p.sku}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                                ${p.categorias ? p.categorias.nombre : 'Sin categoría'}
                             </span>
                         </td>
-                    </tr>`;
-            }).join('');
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center gap-3">
+                                <div class="text-sm font-bold ${p.stock_actual <= p.stock_minimo ? 'text-red-600' : 'text-slate-700'} w-12">${p.stock_actual} <span class="text-xs text-slate-400 font-normal">/ ${p.stock_minimo}</span></div>
+                                <div class="flex-1 max-w-[120px]">
+                                    <div class="progress-bar-bg">
+                                        <div class="progress-bar-fill ${statusColor}" style="width: ${percent}%"></div>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-wide">${statusText}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button class="text-blue-600 hover:text-blue-900 bg-blue-50 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                            <button class="text-slate-600 hover:text-slate-900 bg-slate-100 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition ml-1" title="Ajuste Rápido"><i class="fa-solid fa-boxes-stacked"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
 
-            new Chart(document.getElementById('inventoryChart'), {
+        // Gráfica de Alto Impacto con Chart.js
+        function renderChart(categoriasData) {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            
+            // Si no hay datos por alguna razón, ponemos un array vacío preventivo
+            const labels = categoriasData ? categoriasData.map(c => c.nombre) : [];
+            const data = categoriasData ? categoriasData.map(c => c.total_stock) : [];
+            const colors = categoriasData ? categoriasData.map(c => c.color) : [];
+
+            new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Industrial', 'Eléctrico', 'Otros'],
-                    datasets: [{ data: [15, 3, 5], backgroundColor: ['#3b82f6', '#10b981', '#f59e0b'] }]
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
                 },
-                options: { plugins: { legend: { position: 'bottom' } } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                font: { family: "'Inter', sans-serif", size: 11, weight: '600' },
+                                color: '#64748b'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleFont: { family: "'Inter', sans-serif", size: 13 },
+                            bodyFont: { family: "'Inter', sans-serif", size: 12, weight: 'bold' },
+                            padding: 12,
+                            cornerRadius: 8,
+                            boxPadding: 6
+                        }
+                    },
+                    animation: { animateScale: true, animateRotate: true }
+                }
             });
         }
-        init();
+
+        // Iniciar
+        window.onload = initApp;
     </script>
 </body>
 </html>
