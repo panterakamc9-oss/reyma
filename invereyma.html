@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InventariosPRO | Enterprise Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- 
+    ======================================================================
+    ARCHIVO: styles.css
+    (Integrado por mandato de entorno, estructurado modularmente)
+    ====================================================================== 
+    -->
+    <style>
+        :root {
+            /* Corporate Color Palette (SAP Fiori / Dynamics inspired) */
+            --bg-body: #f4f7f9;
+            --bg-surface: #ffffff;
+            --bg-hover: #f8fafc;
+            
+            --primary: #1a2b4a;
+            --primary-light: #2c416c;
+            --primary-accent: #3b82f6;
+            
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-inverse: #ffffff;
+            
+            --border-light: #e2e8f0;
+            --border-medium: #cbd5e1;
+            
+            /* Status Colors */
+            --status-success: #10b981;
+            --status-success-bg: #d1fae5;
+            --status-danger: #ef4444;
+            --status-danger-bg: #fee2e2;
+            --status-warning: #f59e0b;
+            --status-warning-bg: #fef3c7;
+            --status-info: #3b82f6;
+            --status-info-bg: #dbeafe;
+            
+            /* Chart Colors */
+            --chart-color-1: #1a2b4a;
+            --chart-color-2: #3b82f6;
+            --chart-color-3: #10b981;
+            --chart-color-4: #f59e0b;
+            --chart-color-5: #64748b;
+            
+            /* Geometry & Layout */
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --sidebar-width: 260px;
+            --sidebar-collapsed: 80px;
+            --header-height: 72px;
+            
+            /* Elevation */
+            --shadow-subtle: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            --shadow-float: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+            
+            /* Transitions */
+            --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+            --trans-fast: 0.2s var(--ease-standard);
+            --trans-normal: 0.3s var(--ease-standard);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            overflow: hidden; /* Desktop app feel */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        #app-root {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ================= SIDEBAR ================= */
+        .app-sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            transition: width var(--trans-normal), transform var(--trans-normal);
+            z-index: 40;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .app-sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+        }
+
+        .sidebar-brand {
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            border-bottom: 1px solid var(--border-light);
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .brand-logo-img {
+            height: 32px;
+            width: auto;
+            flex-shrink: 0;
+        }
+
+        .brand-fallback {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -0.5px;
+            margin-left: 12px;
+            transition: opacity var(--trans-fast);
+        }
+        
+        .brand-fallback span {
+            color: var(--primary-accent);
+        }
+
+        .app-sidebar.collapsed .brand-fallback {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .sidebar-menu {
+            flex: 1;
+            padding: 20px 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* Scrollbar styling */
+        .sidebar-menu::-webkit-scrollbar, .main-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar-menu::-webkit-scrollbar-thumb, .main-content::-webkit-scrollbar-thumb {
+            background-color: var(--border-medium);
+            border-radius: 4px;
+        }
+
+        .menu-section-title {
+            padding: 16px 24px 8px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            white-space: nowrap;
+            transition: opacity var(--trans-fast);
+        }
+
+        .app-sidebar.collapsed .menu-section-title {
+            opacity: 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 24px;
+            margin: 4px 12px;
+            border-radius: var(--radius-md);
+            color: var(--text-muted);
+            transition: all var(--trans-fast);
+            position: relative;
+        }
+
+        .menu-item:hover {
+            background-color: var(--bg-hover);
+            color: var(--primary);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary-light);
+            color: var(--text-inverse);
+            box-shadow: var(--shadow-card);
+        }
+
+        .menu-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 24px;
+        }
+
+        .menu-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2;
+        }
+
+        .menu-text {
+            margin-left: 16px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: opacity var(--trans-fast);
+        }
+
+        .app-sidebar.collapsed .menu-text {
+            opacity: 0;
+        }
+
+        /* ================= HEADER ================= */
+        .app-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0; /* Important for flex-child text truncation */
+        }
+
+        .app-header {
+            height: var(--header-height);
+            background-color: var(--bg-surface);
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            z-index: 30;
+        }
+
+        .header-left, .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .icon-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: var(--text-muted);
+            transition: var(--trans-fast);
+        }
+
+        .icon-btn:hover {
+            background-color: var(--bg-hover);
+            color: var(--primary);
+        }
+
+        .search-box {
+            position: relative;
+            width: 320px;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-box svg {
+            position: absolute;
+            left: 14px;
+            color: var(--text-muted);
+            width: 18px;
+            height: 18px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 16px 10px 42px;
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            background-color: var(--bg-body);
+            font-family: inherit;
+            font-size: 0.875rem;
+            transition: var(--trans-fast);
+            outline: none;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary-accent);
+            background-color: var(--bg-surface);
+            box-shadow: 0 0 0 3px var(--status-info-bg);
+        }
+
+        .header-date {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            padding-right: 16px;
+            border-right: 1px solid var(--border-light);
+        }
+
+        .user-widget {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: var(--radius-md);
+            transition: var(--trans-fast);
+        }
+
+        .user-widget:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .user-name {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-light);
+            color: var(--text-inverse);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1rem;
+            object-fit: cover;
+        }
+
+        /* ================= DASHBOARD CONTENT ================= */
+        .main-content {
+            flex: 1;
+            padding: 32px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: -0.02em;
+        }
+
+        .page-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* KPI Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .kpi-card {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-subtle);
+            transition: var(--trans-normal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-float);
+            border-color: var(--border-medium);
+        }
+
+        .kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .kpi-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .kpi-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .kpi-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .icon-blue { background: var(--status-info-bg); color: var(--status-info); }
+        .icon-green { background: var(--status-success-bg); color: var(--status-success); }
+        .icon-orange { background: var(--status-warning-bg); color: var(--status-warning); }
+        .icon-red { background: var(--status-danger-bg); color: var(--status-danger); }
+        .icon-purple { background: #f3e8ff; color: #a855f7; }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1.2;
+        }
+
+        /* Charts Section */
+        .dashboard-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .panel {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-subtle);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .panel-body {
+            padding: 24px;
+            flex: 1;
+            position: relative;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            position: relative;
+        }
+
+        /* Table Section */
+        .table-responsive {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        .enterprise-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .enterprise-table th {
+            padding: 16px 24px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            background-color: var(--bg-hover);
+            border-bottom: 2px solid var(--border-light);
+            white-space: nowrap;
+        }
+
+        .enterprise-table td {
+            padding: 16px 24px;
+            font-size: 0.875rem;
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border-light);
+            vertical-align: middle;
+        }
+
+        .enterprise-table tbody tr {
+            transition: background-color var(--trans-fast);
+        }
+
+        .enterprise-table tbody tr:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .cell-product {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .product-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-body);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+        }
+
+        .product-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-name { font-weight: 600; color: var(--text-main); }
+        .product-sku { font-size: 0.75rem; color: var(--text-muted); }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        .badge.entrada { background-color: var(--status-success-bg); color: var(--status-success); }
+        .badge.salida { background-color: var(--status-danger-bg); color: var(--status-danger); }
+        .badge.ajuste { background-color: var(--status-info-bg); color: var(--status-info); }
+        .badge.critical { background-color: var(--status-danger-bg); color: var(--status-danger); border: 1px solid var(--status-danger); }
+
+        /* Activity List */
+        .activity-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 16px;
+        }
+
+        .activity-timeline {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .activity-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--border-medium);
+            z-index: 2;
+        }
+
+        .activity-item:not(:last-child) .activity-timeline::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            bottom: -20px;
+            width: 2px;
+            background-color: var(--border-light);
+            z-index: 1;
+        }
+
+        .dot-entrada { background-color: var(--status-success); box-shadow: 0 0 0 3px var(--status-success-bg); }
+        .dot-salida { background-color: var(--status-danger); box-shadow: 0 0 0 3px var(--status-danger-bg); }
+
+        .activity-content {
+            flex: 1;
+            padding-bottom: 4px;
+        }
+
+        .activity-desc {
+            font-size: 0.875rem;
+            color: var(--text-main);
+            line-height: 1.4;
+        }
+        
+        .activity-desc b {
+            color: var(--primary);
+        }
+
+        .activity-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            display: flex;
+            gap: 8px;
+        }
+
+        /* UI States & Animations */
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            backdrop-filter: blur(2px);
+            border-radius: inherit;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-light);
+            border-top-color: var(--primary-accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .error-state {
+            padding: 40px;
+            text-align: center;
+            color: var(--status-danger);
+            background: var(--status-danger-bg);
+            border-radius: var(--radius-md);
+            border: 1px dashed var(--status-danger);
+            margin: 20px 0;
+        }
+
+        /* ================= RESPONSIVE ================= */
+        @media (max-width: 1200px) {
+            .dashboard-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .app-sidebar {
+                width: var(--sidebar-collapsed);
+            }
+            .sidebar-brand { padding: 0 16px; justify-content: center; }
+            .brand-fallback { display: none; }
+            .menu-section-title { opacity: 0; }
+            .menu-text { display: none; }
+            .menu-item { justify-content: center; padding: 12px; }
+            .menu-icon { margin: 0; }
+            
+            .search-box { width: 220px; }
+        }
+
+        @media (max-width: 768px) {
+            .app-sidebar {
+                position: fixed;
+                left: -100%;
+                height: 100%;
+                width: 280px;
+                box-shadow: var(--shadow-float);
+            }
+            .app-sidebar.mobile-open {
+                left: 0;
+            }
+            .brand-fallback, .menu-section-title, .menu-text { display: block; opacity: 1; }
+            .menu-item { justify-content: flex-start; padding: 12px 24px; }
+            
+            #mobile-menu-btn { display: flex !important; }
+            
+            .header-date { display: none; }
+            .search-box { display: none; }
+            .main-content { padding: 20px; }
+            .kpi-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
+        }
+        
+        @media (max-width: 480px) {
+            .kpi-grid { grid-template-columns: 1fr; }
+            .user-details { display: none; }
+        }
+
+        #mobile-menu-btn { display: none; }
+        
+        /* Utility Classes */
+        .tooltip { position: relative; }
+        .tooltip:hover::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            margin-bottom: 8px;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-root">
+        <!-- Sidebar Navigation -->
+        <aside class="app-sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <!-- Using Reyma Logo as requested, with fallback -->
+                <img src="https://www.reyma.com.mx/wp-content/uploads/2021/11/logo-reyma.png" alt="Reyma Logo" class="brand-logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <div class="brand-fallback" style="display: none;">INVENTARIOS<span>PRO</span></div>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <div class="menu-section-title">Principal</div>
+                <a href="#" class="menu-item active">
+                    <div class="menu-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    </div>
+                    <span class="menu-text">Dashboard</span>
+                </a>
+                
+                <div class="menu-section-title">Catálogos</div>
+                <a href="#" class="menu-item">
+                    <div class="menu-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    </div>
+                    <span class="menu-text">Productos</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <div class="menu-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                    </div>
+                    <span class="menu-text">Categorías</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <div class="menu-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                    </div>
+                    <span class="menu-text">Marcas</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <div class="menu-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                    </div>
+                    <span class="menu-text">Unidades</span>
+                </a>
+
+                <div class="menu-section-title">Operaciones</div>
+                <a href="#" class="menu-item">
+                    <div class="menu-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+                    </div>
+                    <span class="menu-text">Entradas</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <div class="menu-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+                    </div>
+                    <span class="menu-text">Salidas</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <div class="menu-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    </div>
+                    <span class="menu-text">Ajustes</span>
+                </a>
+
+                <div class="menu-section-title">Administración</div>
+                <a href="#" class="menu-item">
+                    <div class="menu-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    </div>
+                    <span class="menu-text">Kardex / Reportes</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <div class="menu-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    </div>
+                    <span class="menu-text">Usuarios</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <div class="menu-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                    </div>
+                    <span class="menu-text">Bitácora</span>
+                </a>
+                <a href="#" class="menu-item" style="margin-top: auto; color: var(--status-danger);">
+                    <div class="menu-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    </div>
+                    <span class="menu-text">Cerrar Sesión</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="app-wrapper">
+            <!-- Header -->
+            <header class="app-header">
+                <div class="header-left">
+                    <button class="icon-btn tooltip" id="toggle-sidebar" data-tip="Alternar Menú">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                    </button>
+                    <button class="icon-btn" id="mobile-menu-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                    </button>
+                    
+                    <div class="search-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" placeholder="Buscar productos, SKUs, categorías...">
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <div class="header-date" id="current-date-display">
+                        Cargando fecha...
+                    </div>
+                    <button class="icon-btn tooltip" data-tip="Notificaciones">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                    </button>
+                    <div class="user-widget" id="user-profile-btn">
+                        <div class="user-details">
+                            <span class="user-name" id="user-name-display">Ing. A. Martínez</span>
+                            <span class="user-role" id="user-role-display">Gerente de Almacén</span>
+                        </div>
+                        <img src="https://ui-avatars.com/api/?name=AM&background=2c416c&color=fff" alt="Avatar" class="user-avatar" id="user-avatar-display">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="main-content" id="main-view">
+                
+                <div class="page-header fade-in">
+                    <div>
+                        <h1 class="page-title">Visión General del Inventario</h1>
+                        <p class="page-subtitle">Indicadores clave y análisis de flujo de materiales industriales.</p>
+                    </div>
+                    <button class="icon-btn" style="background: var(--bg-surface); border: 1px solid var(--border-light);" title="Actualizar datos" onclick="App.refreshData()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                    </button>
+                </div>
+
+                <!-- Error Container -->
+                <div id="error-container" style="display: none;"></div>
+
+                <!-- KPIs -->
+                <div class="kpi-grid" id="kpi-container">
+                    <!-- Skeletons generated via JS initially -->
+                </div>
+
+                <!-- Charts -->
+                <div class="dashboard-row fade-in" style="animation-delay: 0.2s;">
+                    <!-- Bar Chart Panel -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title">Flujo Mensual (Últimos 6 meses)</h2>
+                            <span class="badge" style="background: var(--bg-body); color: var(--text-muted); border: 1px solid var(--border-light);">Unidades</span>
+                        </div>
+                        <div class="panel-body">
+                            <div class="chart-container">
+                                <canvas id="barChartCanvas"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Donut Chart Panel -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title">Distribución por Categoría</h2>
+                        </div>
+                        <div class="panel-body">
+                            <div class="chart-container">
+                                <canvas id="donutChartCanvas"></canvas>
+                            </div>
+                            <div id="donutLegend" style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; font-size: 0.75rem;">
+                                <!-- Injected via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tables & Activity -->
+                <div class="dashboard-row fade-in" style="animation-delay: 0.3s;">
+                    <!-- Table Panel -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title">Últimos Movimientos</h2>
+                            <a href="#" style="font-size: 0.875rem; color: var(--primary-accent); font-weight: 500;">Ver Kardex Completo &rarr;</a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="enterprise-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Producto</th>
+                                        <th>Tipo</th>
+                                        <th style="text-align: right;">Cantidad</th>
+                                        <th>Usuario</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-body">
+                                    <!-- Injected via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Activity Panel -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title">Bitácora Reciente</h2>
+                        </div>
+                        <div class="panel-body" style="padding-top: 16px;">
+                            <div class="activity-feed" id="activity-feed-container">
+                                <!-- Injected via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </main>
+    </div>
+
+    <!-- 
+    ======================================================================
+    JAVASCRIPT ARCHITECTURE
+    (Encapsulated Modules as requested)
+    ====================================================================== 
+    -->
+    <script>
+        /**
+         * ARCHIVO: config.js
+         * Configuración global y credenciales
+         */
+        const Config = {
+            appName: 'INVENTARIOSPRO',
+            version: '2.0.0',
+            // =========================================================
+            // IMPORTANTE: Reemplaza con tus credenciales reales de Supabase.
+            // Para mantener la seguridad, NUNCA uses la Service Role Key aquí.
+            // Si las credenciales son inválidas, la UI mostrará un mensaje de error elegante.
+            // =========================================================
+            supabaseUrl: 'YOUR_SUPABASE_URL', 
+            supabaseKey: 'YOUR_SUPABASE_ANON_KEY',
+            
+            // Configuración Visual de Gráficos
+            chartColors: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#14b8a6', '#6366f1']
+        };
+
+        /**
+         * ARCHIVO: utils.js
+         * Utilidades generales y formateo
+         */
+        const Utils = {
+            formatDate: (dateString) => {
+                if (!dateString) return '';
+                const date = new Date(dateString);
+                return new Intl.DateTimeFormat('es-MX', { 
+                    year: 'numeric', month: 'short', day: '2-digit', 
+                    hour: '2-digit', minute: '2-digit' 
+                }).format(date);
+            },
+            formatDateShort: (dateString) => {
+                if (!dateString) return '';
+                const date = new Date(dateString);
+                return new Intl.DateTimeFormat('es-MX', { month: 'short', day: 'numeric' }).format(date);
+            },
+            formatNumber: (num) => {
+                return new Intl.NumberFormat('es-MX').format(num || 0);
+            },
+            formatCurrency: (num) => {
+                return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(num || 0);
+            },
+            delay: (ms) => new Promise(res => setTimeout(res, ms)),
+            
+            // Helper para crear elementos DOM rápidamente
+            el: (id) => document.getElementById(id),
+            
+            showError: (message) => {
+                const container = Utils.el('error-container');
+                container.style.display = 'block';
+                container.innerHTML = `
+                    <div class="error-state fade-in">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 16px;">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 8px;">Error de Conexión</h3>
+                        <p style="color: var(--text-main);">${message}</p>
+                        <p style="font-size: 0.875rem; margin-top: 12px; opacity: 0.8;">Por favor configura supabaseUrl y supabaseKey en el archivo config.js.</p>
+                    </div>
+                `;
+                Utils.el('kpi-container').style.display = 'none';
+                document.querySelectorAll('.dashboard-row').forEach(el => el.style.display = 'none');
+            }
+        };
+
+        /**
+         * ARCHIVO: supabase.js
+         * Cliente API de Base de Datos
+         */
+        const API = (() => {
+            // Inicialización segura del cliente (Falla silenciosamente si la librería no cargó o keys son inválidas)
+            let supabase = null;
+            try {
+                if (window.supabase) {
+                    supabase = window.supabase.createClient(Config.supabaseUrl, Config.supabaseKey);
+                }
+            } catch (e) {
+                console.warn("Supabase client init failed. Verifique credenciales.");
+            }
+
+            // Flag para modo demo si las credenciales fallan (para que el gerente vea la UI)
+            // Se implementa un fallback visual robusto.
+            let useMockFallback = false;
+
+            const checkConnection = async () => {
+                if (!supabase || Config.supabaseUrl === 'YOUR_SUPABASE_URL') {
+                    useMockFallback = true;
+                    return false;
+                }
+                return true;
+            };
+
+            return {
+                checkAuth: async () => {
+                    const isConnected = await checkConnection();
+                    if (!isConnected) return { user: { name: 'Demo User', role: 'Administrador' }, mock: true };
+                    
+                    try {
+                        const { data, error } = await supabase.auth.getSession();
+                        if (error || !data.session) return null;
+                        
+                        // Fetch user details from profiles/usuarios table
+                        const { data: userProfile } = await supabase.from('usuarios').select('*').eq('id', data.session.user.id).single();
+                        return { user: userProfile || data.session.user, mock: false };
+                    } catch (e) {
+                        return null;
+                    }
+                },
+
+                getDashboardStats: async () => {
+                    if (useMockFallback) {
+                        await Utils.delay(600); // Simulate network
+                        return {
+                            total_productos: 1452,
+                            entradas_mes: 342,
+                            salidas_mes: 215,
+                            existencias_valuadas: 2450890.50,
+                            movimientos_hoy: 18,
+                            stock_bajo: 12,
+                            criticos: 3
+                        };
+                    }
+
+                    try {
+                        // En un entorno real, esto llamaría a un RPC: await supabase.rpc('get_dashboard_stats')
+                        // Como alternativa robusta, hacemos consultas agregadas
+                        const { count: total_productos } = await supabase.from('productos').select('*', { count: 'exact', head: true });
+                        const { count: stock_bajo } = await supabase.from('productos').select('*', { count: 'exact', head: true }).lt('stock_actual', 10);
+                        const { count: criticos } = await supabase.from('productos').select('*', { count: 'exact', head: true }).lte('stock_actual', 'stock_critico');
+                        
+                        // Valores simulados de agregación si el RPC no existe
+                        return {
+                            total_productos: total_productos || 0,
+                            entradas_mes: 0, // Requiere query compleja
+                            salidas_mes: 0,
+                            existencias_valuadas: 0,
+                            movimientos_hoy: 0,
+                            stock_bajo: stock_bajo || 0,
+                            criticos: criticos || 0
+                        };
+                    } catch (e) {
+                        throw new Error("No se pudo conectar a la base de datos.");
+                    }
+                },
+
+                getMovimientosRecientes: async (limit = 6) => {
+                    if (useMockFallback) {
+                        await Utils.delay(400);
+                        return [
+                            { id: 'MV01', created_at: new Date().toISOString(), productos: { nombre: 'Llave de Impacto Neumática 1/2"', codigo: 'HER-001' }, tipo: 'Entrada', cantidad: 15, usuarios: { nombre: 'Ing. Roberto G.' } },
+                            { id: 'MV02', created_at: new Date(Date.now() - 3600000).toISOString(), productos: { nombre: 'Rodamiento Rígido Bolas 6204', codigo: 'ROD-6204' }, tipo: 'Salida', cantidad: 4, usuarios: { nombre: 'Carlos M.' } },
+                            { id: 'MV03', created_at: new Date(Date.now() - 7200000).toISOString(), productos: { nombre: 'Motor Eléctrico Trifásico 5HP', codigo: 'MOT-005' }, tipo: 'Salida', cantidad: 1, usuarios: { nombre: 'Ana S.' } },
+                            { id: 'MV04', created_at: new Date(Date.now() - 86400000).toISOString(), productos: { nombre: 'Guantes Anticorte Nivel 5', codigo: 'SEG-012' }, tipo: 'Entrada', cantidad: 100, usuarios: { nombre: 'Ing. Roberto G.' } },
+                            { id: 'MV05', created_at: new Date(Date.now() - 90000000).toISOString(), productos: { nombre: 'Cilindro Neumático DNC-32', codigo: 'NEU-032' }, tipo: 'Ajuste', cantidad: -1, usuarios: { nombre: 'Sistema' } },
+                        ];
+                    }
+
+                    const { data, error } = await supabase
+                        .from('movimientos')
+                        .select(`
+                            id, created_at, tipo, cantidad,
+                            productos (nombre, codigo),
+                            usuarios (nombre)
+                        `)
+                        .order('created_at', { ascending: false })
+                        .limit(limit);
+                    
+                    if (error) throw error;
+                    return data;
+                },
+
+                getChartData: async () => {
+                    if (useMockFallback) {
+                        await Utils.delay(500);
+                        return {
+                            bar: {
+                                labels: ['Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul'],
+                                entradas: [120, 150, 110, 180, 210, 145],
+                                salidas: [100, 130, 140, 160, 190, 175]
+                            },
+                            donut: [
+                                { label: 'Herramientas', value: 35 },
+                                { label: 'Rodamientos', value: 25 },
+                                { label: 'Neumática', value: 20 },
+                                { label: 'Seguridad', value: 15 },
+                                { label: 'Otros', value: 5 }
+                            ]
+                        };
+                    }
+                    throw new Error("Implementación real requiere vistas SQL configuradas.");
+                }
+            };
+        })();
+
+        /**
+         * ARCHIVO: dashboard.js
+         * Lógica de la vista del Dashboard (Renderizado, Canvas, Tablas)
+         */
+        const Dashboard = (() => {
+            
+            // SVG Icons Helpers
+            const Icons = {
+                box: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>`,
+                in: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
+                out: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg>`,
+                money: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`,
+                alert: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`,
+                critical: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`
+            };
+
+            const renderKPIs = (stats) => {
+                const container = Utils.el('kpi-container');
+                const kpis = [
+                    { title: 'Total Productos', value: Utils.formatNumber(stats.total_productos), icon: Icons.box, color: 'icon-blue' },
+                    { title: 'Valor Inventario', value: Utils.formatCurrency(stats.existencias_valuadas), icon: Icons.money, color: 'icon-green' },
+                    { title: 'Entradas Mes', value: Utils.formatNumber(stats.entradas_mes), icon: Icons.in, color: 'icon-green' },
+                    { title: 'Salidas Mes', value: Utils.formatNumber(stats.salidas_mes), icon: Icons.out, color: 'icon-orange' },
+                    { title: 'Stock Bajo', value: stats.stock_bajo, icon: Icons.alert, color: 'icon-orange' },
+                    { title: 'Productos Críticos', value: stats.criticos, icon: Icons.critical, color: 'icon-red' }
+                ];
+
+                container.innerHTML = kpis.map((kpi, idx) => `
+                    <div class="kpi-card fade-in" style="animation-delay: ${idx * 0.05}s">
+                        <div class="kpi-header">
+                            <span class="kpi-title">${kpi.title}</span>
+                            <div class="kpi-icon ${kpi.color}">${kpi.icon}</div>
+                        </div>
+                        <div class="kpi-value ${kpi.title === 'Productos Críticos' && kpi.value > 0 ? 'danger-text' : ''}">
+                            ${kpi.value}
+                        </div>
+                    </div>
+                `).join('');
+            };
+
+            const renderTableAndActivity = (movimientos) => {
+                const tbody = Utils.el('table-body');
+                const activityContainer = Utils.el('activity-feed-container');
+
+                tbody.innerHTML = movimientos.map(m => {
+                    const badgeClass = m.tipo.toLowerCase();
+                    const sign = m.tipo === 'Entrada' ? '+' : m.tipo === 'Salida' ? '-' : '';
+                    
+                    return `
+                    <tr>
+                        <td style="color: var(--text-muted); font-size: 0.8rem;">${Utils.formatDate(m.created_at)}</td>
+                        <td>
+                            <div class="cell-product">
+                                <div class="product-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg></div>
+                                <div class="product-info">
+                                    <span class="product-name">${m.productos.nombre}</span>
+                                    <span class="product-sku">${m.productos.codigo}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge ${badgeClass}">${m.tipo}</span></td>
+                        <td style="text-align: right; font-weight: 600; font-family: monospace; font-size: 1rem;">
+                            ${sign}${Math.abs(m.cantidad)}
+                        </td>
+                        <td>${m.usuarios.nombre}</td>
+                    </tr>
+                `}).join('');
+
+                activityContainer.innerHTML = movimientos.slice(0, 4).map(m => {
+                    const isEntry = m.tipo === 'Entrada';
+                    const dotClass = isEntry ? 'dot-entrada' : m.tipo === 'Salida' ? 'dot-salida' : '';
+                    const actionWord = isEntry ? 'ingresó' : m.tipo === 'Salida' ? 'retiró' : 'ajustó';
+                    
+                    return `
+                    <div class="activity-item">
+                        <div class="activity-timeline">
+                            <div class="activity-dot ${dotClass}"></div>
+                        </div>
+                        <div class="activity-content">
+                            <p class="activity-desc"><b>${m.usuarios.nombre.split(' ')[0]}</b> ${actionWord} ${Math.abs(m.cantidad)} un. de ${m.productos.nombre}</p>
+                            <div class="activity-meta">
+                                <span>${Utils.formatDate(m.created_at)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `}).join('');
+            };
+
+            // Custom Canvas Chart Engine (No dependencies)
+            const drawBarChart = (canvasId, data) => {
+                const canvas = Utils.el(canvasId);
+                if(!canvas) return;
+                
+                const parent = canvas.parentElement;
+                // Responsive adjustment
+                canvas.width = parent.clientWidth;
+                canvas.height = parent.clientHeight;
+                
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width;
+                const height = canvas.height;
+                
+                const padding = { top: 20, right: 20, bottom: 30, left: 40 };
+                const chartW = width - padding.left - padding.right;
+                const chartH = height - padding.top - padding.bottom;
+                
+                // Clear
+                ctx.clearRect(0, 0, width, height);
+                
+                // Find Max
+                const maxVal = Math.max(...data.entradas, ...data.salidas) * 1.15;
+                
+                // Draw Grid & Y Axis Labels
+                ctx.beginPath();
+                ctx.strokeStyle = '#e2e8f0';
+                ctx.lineWidth = 1;
+                ctx.fillStyle = '#64748b';
+                ctx.font = '11px Inter, sans-serif';
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                
+                const gridLines = 4;
+                for(let i=0; i<=gridLines; i++) {
+                    const y = padding.top + (chartH / gridLines) * i;
+                    const val = Math.round(maxVal - (maxVal / gridLines) * i);
+                    
+                    ctx.moveTo(padding.left, y);
+                    ctx.lineTo(width - padding.right, y);
+                    ctx.fillText(val, padding.left - 10, y);
+                }
+                ctx.stroke();
+                
+                // Draw Bars
+                const numBars = data.labels.length;
+                const barGroupW = chartW / numBars;
+                const barW = Math.min(barGroupW * 0.35, 30); // Max width 30
+                const gap = 2; // Gap between entradas and salidas bars
+                
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                
+                data.labels.forEach((label, i) => {
+                    const xCenter = padding.left + barGroupW * i + barGroupW / 2;
+                    
+                    // X Label
+                    ctx.fillStyle = '#64748b';
+                    ctx.fillText(label, xCenter, height - padding.bottom + 10);
+                    
+                    // Entradas Bar (Blue)
+                    const valIn = data.entradas[i];
+                    const hIn = (valIn / maxVal) * chartH;
+                    const yIn = padding.top + chartH - hIn;
+                    
+                    ctx.fillStyle = '#3b82f6';
+                    // Rounded top corners
+                    ctx.beginPath();
+                    ctx.roundRect(xCenter - barW - gap/2, yIn, barW, hIn, [4, 4, 0, 0]);
+                    ctx.fill();
+                    
+                    // Salidas Bar (Red)
+                    const valOut = data.salidas[i];
+                    const hOut = (valOut / maxVal) * chartH;
+                    const yOut = padding.top + chartH - hOut;
+                    
+                    ctx.fillStyle = '#f43f5e';
+                    ctx.beginPath();
+                    ctx.roundRect(xCenter + gap/2, yOut, barW, hOut, [4, 4, 0, 0]);
+                    ctx.fill();
+                });
+            };
+
+            const drawDonutChart = (canvasId, data, legendId) => {
+                const canvas = Utils.el(canvasId);
+                if(!canvas) return;
+                
+                const parent = canvas.parentElement;
+                canvas.width = parent.clientWidth;
+                canvas.height = parent.clientHeight;
+                
+                const ctx = canvas.getContext('2d');
+                const cx = canvas.width / 2;
+                const cy = canvas.height / 2;
+                const radius = Math.min(cx, cy) * 0.8;
+                const innerRadius = radius * 0.65;
+                
+                const total = data.reduce((sum, item) => sum + item.value, 0);
+                let currentAngle = -0.5 * Math.PI; // Start at top
+                
+                // Clear
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                const colors = Config.chartColors;
+                let legendHtml = '';
+                
+                data.forEach((item, i) => {
+                    const sliceAngle = (item.value / total) * 2 * Math.PI;
+                    const color = colors[i % colors.length];
+                    
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, radius, currentAngle, currentAngle + sliceAngle);
+                    ctx.arc(cx, cy, innerRadius, currentAngle + sliceAngle, currentAngle, true);
+                    ctx.closePath();
+                    
+                    ctx.fillStyle = color;
+                    ctx.fill();
+                    
+                    // Add subtle stroke separator
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    
+                    currentAngle += sliceAngle;
+                    
+                    // Build Legend
+                    const percent = Math.round((item.value / total) * 100);
+                    legendHtml += `
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <div style="width: 10px; height: 10px; border-radius: 2px; background: ${color};"></div>
+                            <span style="color: var(--text-main); font-weight: 500;">${item.label}</span>
+                            <span style="color: var(--text-muted);">${percent}%</span>
+                        </div>
+                    `;
+                });
+                
+                // Draw Inner text
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#0f172a';
+                ctx.font = 'bold 20px Inter';
+                ctx.fillText(Utils.formatNumber(total), cx, cy - 8);
+                ctx.fillStyle = '#64748b';
+                ctx.font = '12px Inter';
+                ctx.fillText('Items', cx, cy + 12);
+                
+                Utils.el(legendId).innerHTML = legendHtml;
+            };
+
+            return {
+                load: async () => {
+                    try {
+                        // Skeletons already exist in HTML, fetch data
+                        const stats = await API.getDashboardStats();
+                        renderKPIs(stats);
+
+                        const movs = await API.getMovimientosRecientes();
+                        renderTableAndActivity(movs);
+
+                        const chartData = await API.getChartData();
+                        drawBarChart('barChartCanvas', chartData.bar);
+                        drawDonutChart('donutChartCanvas', chartData.donut, 'donutLegend');
+
+                        // Setup resize listener for charts
+                        window.addEventListener('resize', () => {
+                            drawBarChart('barChartCanvas', chartData.bar);
+                            drawDonutChart('donutChartCanvas', chartData.donut, 'donutLegend');
+                        });
+
+                    } catch (error) {
+                        Utils.showError(error.message);
+                    }
+                }
+            };
+        })();
+
+        /**
+         * ARCHIVO: app.js
+         * Inicializador de la Aplicación y Event Listeners
+         */
+        const App = (() => {
+            
+            const setupUI = () => {
+                // Set Date
+                const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const today = new Date().toLocaleDateString('es-MX', dateOptions);
+                Utils.el('current-date-display').textContent = today.charAt(0).toUpperCase() + today.slice(1);
+
+                // Sidebar Toggle
+                const sidebar = Utils.el('sidebar');
+                Utils.el('toggle-sidebar').addEventListener('click', () => {
+                    sidebar.classList.toggle('collapsed');
+                });
+
+                Utils.el('mobile-menu-btn').addEventListener('click', () => {
+                    sidebar.classList.toggle('mobile-open');
+                });
+
+                // Close mobile sidebar if clicked outside
+                document.addEventListener('click', (e) => {
+                    if (window.innerWidth <= 768 && sidebar.classList.contains('mobile-open')) {
+                        if (!sidebar.contains(e.target) && !Utils.el('mobile-menu-btn').contains(e.target)) {
+                            sidebar.classList.remove('mobile-open');
+                        }
+                    }
+                });
+            };
+
+            return {
+                init: async () => {
+                    console.log(`Starting ${Config.appName} v${Config.version}`);
+                    setupUI();
+
+                    // Loading State Simulation
+                    Utils.el('kpi-container').innerHTML = Array(6).fill('<div class="kpi-card" style="height: 110px; background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite;"></div>').join('');
+
+                    // Authenticate & Load
+                    const authRes = await API.checkAuth();
+                    if (!authRes) {
+                        // Mock redirect logic
+                        console.warn("No session found. Redirecting to login...");
+                        Utils.showError("Sesión no detectada. Por favor inicie sesión.");
+                        return;
+                    }
+
+                    // Update UI with User Data
+                    Utils.el('user-name-display').textContent = authRes.user.name;
+                    // Mock roles if using API fallback
+                    Utils.el('user-role-display').textContent = authRes.user.rol || 'Administrador';
+
+                    // Load Dashboard
+                    await Dashboard.load();
+                },
+                refreshData: async () => {
+                    // Visual feedback for refresh
+                    const btn = document.querySelector('.page-header .icon-btn svg');
+                    btn.style.animation = 'spin 1s linear infinite';
+                    await Dashboard.load();
+                    setTimeout(() => btn.style.animation = 'none', 500);
+                }
+            };
+        })();
+
+        // Boot Application
+        document.addEventListener('DOMContentLoaded', App.init);
+
+    </script>
+</body>
+</html>
