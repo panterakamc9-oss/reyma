@@ -46,9 +46,9 @@
 
     <aside class="sidebar w-64 h-full flex flex-col text-slate-300 flex-shrink-0 shadow-2xl z-20">
         <div class="p-6 pb-4 border-b border-slate-700/50 flex flex-col items-center justify-center">
-            <!-- Logo Oficial de Reyma -->
+            <!-- Logo Oficial de Reyma (Solución API Thumbnail para GitHub Pages) -->
             <div class="bg-white p-2 rounded-xl w-full flex items-center justify-center shadow-inner mb-2">
-                <img src="https://drive.google.com/uc?export=view&id=1JOn73OiHsxTfBKunHXbKax6-L9IY3gJW" alt="Reyma Logo" class="max-h-12 object-contain">
+                <img src="https://drive.google.com/thumbnail?id=1JOn73OiHsxTfBKunHXbKax6-L9IY3gJW&sz=w400" alt="Reyma Logo" class="max-h-12 object-contain" onerror="this.src='https://placehold.co/400x100/ffffff/0f172a?text=REYMA'">
             </div>
             <p class="text-[10px] text-slate-400 mt-1 uppercase tracking-widest font-bold w-full text-center">InventariosPRO V2.0</p>
         </div>
@@ -181,7 +181,172 @@
                 </div>
             </div>
 
-            <!-- VISTAS PLACEHOLDERS (Para navegación futura) -->
+            <div id="view-finanzas" class="view-section">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 shadow-lg text-white">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Valor Total de Inventario (Costo)</p>
+                        <h3 class="text-3xl font-extrabold">$1,254,300.00 <span class="text-sm font-normal text-slate-400">MXN</span></h3>
+                        <div class="mt-4 flex items-center gap-2 text-emerald-400 text-sm font-medium">
+                            <i class="fa-solid fa-arrow-trend-up"></i> +2.4% este mes
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-sm">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Valor Comercial (Venta)</p>
+                        <h3 class="text-3xl font-extrabold text-slate-800">$2,100,850.00 <span class="text-sm font-normal text-slate-500">MXN</span></h3>
+                        <div class="mt-4 flex items-center gap-2 text-slate-500 text-sm">
+                            <i class="fa-solid fa-calculator"></i> Margen bruto promedio
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-sm">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Utilidad Proyectada</p>
+                        <h3 class="text-3xl font-extrabold text-emerald-600">$846,550.00 <span class="text-sm font-normal text-slate-500">MXN</span></h3>
+                        <div class="mt-4 flex items-center gap-2 text-slate-500 text-sm">
+                            <i class="fa-solid fa-money-bill-trend-up"></i> ~40% ROI Proyectado
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-sm h-[400px] flex flex-col">
+                    <h3 class="font-bold text-lg text-slate-800 mb-1">Evolución de Capital Inmovilizado</h3>
+                    <p class="text-sm text-slate-500 mb-4">Análisis financiero de los últimos 6 meses</p>
+                    <div class="flex-1 relative w-full">
+                        <canvas id="financeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="view-usuarios" class="view-section">
+                <div class="glass-card rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[600px]">
+                    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-white rounded-t-2xl">
+                        <div>
+                            <h3 class="font-bold text-lg text-slate-800">Control de Accesos y Personal</h3>
+                            <p class="text-sm text-slate-500">Administra quién tiene acceso al sistema</p>
+                        </div>
+                        <button class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-md transition flex items-center gap-2">
+                            <i class="fa-solid fa-user-plus"></i> Nuevo Usuario
+                        </button>
+                    </div>
+                    <div class="flex-1 overflow-auto bg-white rounded-b-2xl p-6">
+                        <div class="grid gap-4">
+                            <!-- Usuario 1 -->
+                            <div class="flex items-center justify-between p-4 border border-slate-100 rounded-xl hover:shadow-md transition">
+                                <div class="flex items-center gap-4">
+                                    <img src="https://ui-avatars.com/api/?name=Admin+Reyma&background=0D8ABC&color=fff" class="w-12 h-12 rounded-full border-2 border-blue-100">
+                                    <div>
+                                        <h4 class="font-bold text-slate-800">Admin Reyma</h4>
+                                        <p class="text-xs text-slate-500">gerencia@reyma.com</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-6">
+                                    <span class="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full border border-purple-200">Administrador Global</span>
+                                    <span class="flex items-center gap-1 text-xs font-semibold text-emerald-600"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Activo</span>
+                                    <button class="text-slate-400 hover:text-blue-600 transition"><i class="fa-solid fa-pen-to-square"></i></button>
+                                </div>
+                            </div>
+                            <!-- Usuario 2 -->
+                            <div class="flex items-center justify-between p-4 border border-slate-100 rounded-xl hover:shadow-md transition">
+                                <div class="flex items-center gap-4">
+                                    <img src="https://ui-avatars.com/api/?name=Carlos+Gomez&background=f8fafc&color=334155" class="w-12 h-12 rounded-full border-2 border-slate-200">
+                                    <div>
+                                        <h4 class="font-bold text-slate-800">Carlos Gómez</h4>
+                                        <p class="text-xs text-slate-500">almacen1@reyma.com</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-6">
+                                    <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full border border-blue-200">Jefe de Almacén</span>
+                                    <span class="flex items-center gap-1 text-xs font-semibold text-emerald-600"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Activo</span>
+                                    <button class="text-slate-400 hover:text-blue-600 transition"><i class="fa-solid fa-pen-to-square"></i></button>
+                                </div>
+                            </div>
+                            <!-- Usuario 3 -->
+                            <div class="flex items-center justify-between p-4 border border-slate-100 rounded-xl hover:shadow-md transition bg-slate-50 opacity-75">
+                                <div class="flex items-center gap-4">
+                                    <img src="https://ui-avatars.com/api/?name=Ana+Lopez&background=f8fafc&color=334155" class="w-12 h-12 rounded-full border-2 border-slate-200 grayscale">
+                                    <div>
+                                        <h4 class="font-bold text-slate-800">Ana López</h4>
+                                        <p class="text-xs text-slate-500">auditoria@reyma.com</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-6">
+                                    <span class="px-3 py-1 bg-slate-200 text-slate-600 text-xs font-bold rounded-full border border-slate-300">Auditor Externo</span>
+                                    <span class="flex items-center gap-1 text-xs font-semibold text-slate-400"><span class="w-2 h-2 rounded-full bg-slate-300"></span> Inactivo</span>
+                                    <button class="text-slate-400 hover:text-blue-600 transition"><i class="fa-solid fa-pen-to-square"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="view-ajustes" class="view-section">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Configuración de Empresa -->
+                    <div class="lg:col-span-2 glass-card rounded-2xl border border-slate-200 shadow-sm p-6">
+                        <h3 class="font-bold text-lg text-slate-800 border-b border-slate-100 pb-3 mb-4">Perfil Empresarial</h3>
+                        <div class="flex items-start gap-6 mb-6">
+                            <!-- Integración del Logo Oficial de Reyma -->
+                            <div class="w-32 h-32 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center bg-slate-50 p-2 overflow-hidden relative group cursor-pointer">
+                                <img src="https://drive.google.com/thumbnail?id=1JOn73OiHsxTfBKunHXbKax6-L9IY3gJW&sz=w400" alt="Reyma Logo" class="w-full h-full object-contain" onerror="this.src='https://placehold.co/400x400/ffffff/0f172a?text=REYMA'">
+                                <div class="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center transition">
+                                    <i class="fa-solid fa-camera text-white text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="flex-1 grid grid-cols-2 gap-4">
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Razón Social</label>
+                                    <input type="text" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-slate-50" value="Reyma Enterprise S.A. de C.V." disabled>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">RFC</label>
+                                    <input type="text" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-slate-50" value="REY980512XYZ" disabled>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Moneda Base</label>
+                                    <select class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+                                        <option>MXN - Peso Mexicano</option>
+                                        <option>USD - Dólar Estadounidense</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notificaciones y Reglas -->
+                    <div class="glass-card rounded-2xl border border-slate-200 shadow-sm p-6">
+                        <h3 class="font-bold text-lg text-slate-800 border-b border-slate-100 pb-3 mb-4">Automatización</h3>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-bold text-slate-700">Alertas de Stock Mínimo</p>
+                                    <p class="text-xs text-slate-500">Notificar por email a gerencia</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" value="" class="sr-only peer" checked>
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-bold text-slate-700">Reporte Diario Automático</p>
+                                    <p class="text-xs text-slate-500">Enviar resumen a las 23:59 hrs</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" value="" class="sr-only peer" checked>
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+
+                            <button class="w-full mt-4 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold transition border border-slate-300">
+                                <i class="fa-solid fa-cloud-arrow-down mr-2"></i> Descargar Respaldo (Backup)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA PLACEHOLDER (Movimientos) -->
             <div id="view-movimientos" class="view-section">
                 <div class="flex flex-col items-center justify-center h-96 text-slate-400">
                     <i class="fa-solid fa-truck-ramp-box text-6xl mb-4 text-slate-300"></i>
@@ -190,27 +355,6 @@
                 </div>
             </div>
             
-            <div id="view-finanzas" class="view-section">
-                <div class="flex flex-col items-center justify-center h-96 text-slate-400">
-                    <i class="fa-solid fa-chart-line text-6xl mb-4 text-slate-300"></i>
-                    <h2 class="text-2xl font-bold">Módulo Financiero</h2>
-                    <p>En construcción</p>
-                </div>
-            </div>
-            
-            <div id="view-usuarios" class="view-section">
-                <div class="flex flex-col items-center justify-center h-96 text-slate-400">
-                    <i class="fa-solid fa-users-gear text-6xl mb-4 text-slate-300"></i>
-                    <h2 class="text-2xl font-bold">Gestión de Usuarios</h2>
-                </div>
-            </div>
-            
-            <div id="view-ajustes" class="view-section">
-                <div class="flex flex-col items-center justify-center h-96 text-slate-400">
-                    <i class="fa-solid fa-sliders text-6xl mb-4 text-slate-300"></i>
-                    <h2 class="text-2xl font-bold">Configuración del Sistema</h2>
-                </div>
-            </div>
         </div>
     </main>
 
@@ -299,6 +443,44 @@
             // Actualizar Títulos del Header
             document.getElementById('header-title').innerText = vistasInfo[viewId].titulo;
             document.getElementById('header-subtitle').innerText = vistasInfo[viewId].subtitulo;
+
+            // Renderizar gráfica de finanzas si es la primera vez que se abre esa pestaña
+            if(viewId === 'finanzas' && !window.financeChartRendered) {
+                renderFinanceChart();
+                window.financeChartRendered = true;
+            }
+        }
+
+        function renderFinanceChart() {
+            const ctx = document.getElementById('financeChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Valor de Inventario (MXN)',
+                        data: [950000, 1020000, 980000, 1100000, 1150000, 1254300],
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#2563eb',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: false, grid: { borderDash: [5, 5] }, ticks: { callback: function(value) { return '$' + value / 1000 + 'k'; } } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
         }
 
         // --- SISTEMA BASE DE DATOS --- //
