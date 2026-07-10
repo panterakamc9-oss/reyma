@@ -2,146 +2,40 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INVENTARIOSPRO | Enterprise Dashboard</title>
+    <title>INVENTARIOSPRO | Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --primary: #1a2b4a;
-            --primary-accent: #3b82f6;
-            --bg-body: #f4f7f9;
-            --bg-surface: #ffffff;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --radius-lg: 12px;
-            --radius-md: 8px;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, sans-serif; }
-        body { background-color: var(--bg-body); color: var(--text-main); height: 100vh; display: flex; }
-
-        aside { width: 260px; background: var(--primary); color: white; display: flex; flex-direction: column; }
-        .logo-area { height: 72px; padding: 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .logo-area img { height: 32px; filter: brightness(0) invert(1); }
-        .menu-items { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-        .menu-item { padding: 10px; border-radius: var(--radius-md); cursor: pointer; transition: 0.2s; color: #cbd5e1; font-size: 0.9rem; }
-        .menu-item:hover { background: rgba(255,255,255,0.1); color: white; }
-
-        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        header { height: 72px; background: var(--bg-surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; }
-        .dashboard-content { padding: 30px; overflow-y: auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        
-        .kpi-card { background: white; padding: 20px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .kpi-value { font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-top: 5px; }
-        .kpi-title { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.5px; }
-        
-        .table-card { grid-column: span 4; background: white; padding: 20px; border-radius: var(--radius-lg); border: 1px solid var(--border); }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th { text-align: left; padding: 12px; color: var(--text-muted); font-size: 0.8rem; border-bottom: 2px solid var(--border); }
-        td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        body { font-family: sans-serif; background: #f4f7f9; display: flex; height: 100vh; margin: 0; }
+        .sidebar { width: 250px; background: #1a2b4a; color: white; padding: 20px; }
+        .main { flex: 1; padding: 40px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
-    <aside>
-        <div class="logo-area">
-            <img src="https://www.reyma.com.mx/wp-content/uploads/2021/11/logo-reyma.png" alt="Reyma">
-            <span style="font-weight: 800; letter-spacing: 1px;">INVENTARIOS</span>
+    <div class="sidebar"><h2>INVENTARIOSPRO</h2></div>
+    <div class="main">
+        <div class="card">
+            <h3>Dashboard</h3>
+            <p id="status">Conectando...</p>
+            <div id="stats"></div>
         </div>
-        <div class="menu-items">
-            <div class="menu-item" style="background: rgba(255,255,255,0.1); color: white;">Dashboard</div>
-            <div class="menu-item">Productos</div>
-            <div class="menu-item">Movimientos</div>
-            <div class="menu-item">Cerrar Sesión</div>
-        </div>
-    </aside>
-
-    <main class="main-wrapper">
-        <header>
-            <div id="user-info">Bienvenido, Operador</div>
-            <input type="text" placeholder="Buscar..." style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); width: 250px;">
-        </header>
-
-        <section class="dashboard-content">
-            <div class="kpi-card"><div class="kpi-title">Productos</div><div class="kpi-value" id="total-prod">--</div></div>
-            <div class="kpi-card"><div class="kpi-title">Entradas Mes</div><div class="kpi-value" id="ent-mes">--</div></div>
-            <div class="kpi-card"><div class="kpi-title">Salidas Mes</div><div class="kpi-value" id="sal-mes">--</div></div>
-            <div class="kpi-card"><div class="kpi-title">Stock Crítico</div><div class="kpi-value" id="crit-stock">--</div></div>
-
-            <div class="table-card">
-                <h3>Últimos Movimientos</h3>
-                <table id="movimientos-table">
-                    <thead><tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th>Cantidad</th><th>Usuario</th></tr></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </section>
-    </main>
-
+    </div>
     <script>
-        // CONFIGURACIÓN: ¡¡REEMPLAZA ESTOS VALORES CON LOS DE TU PANEL SUPABASE!!
-        const Config = {
-            supabaseUrl: 'https://TU_PROYECTO.supabase.co',
-            supabaseKey: 'TU_ANON_KEY'
-        };
+        // CONFIGURACIÓN: Sustituye con tus valores reales
+        const supabase = supabase.createClient('TU_URL', 'TU_ANON_KEY');
 
-        const supabase = supabase.createClient(Config.supabaseUrl, Config.supabaseKey);
-
-        const API = {
-            async getDashboard() {
+        async function loadData() {
+            const status = document.getElementById('status');
+            try {
                 const { data, error } = await supabase.rpc('get_dashboard_stats');
                 if (error) throw error;
-                return data;
-            },
-            async getMovimientos() {
-                // Seleccionamos movimientos y unimos tablas
-                const { data, error } = await supabase
-                    .from('movimientos')
-                    .select('*, productos(nombre), usuarios(nombre)')
-                    .limit(10)
-                    .order('created_at', { ascending: false });
-                if (error) throw error;
-                return data;
-            }
-        };
-
-        async function init() {
-            console.log("Iniciando carga de datos...");
-            
-            try {
-                // Cargamos estadísticas
-                const stats = await API.getDashboard();
-                if(stats) {
-                    document.getElementById('total-prod').innerText = stats.total_productos || 0;
-                    document.getElementById('ent-mes').innerText = stats.entradas_mes || 0;
-                    document.getElementById('sal-mes').innerText = stats.salidas_mes || 0;
-                    document.getElementById('crit-stock').innerText = stats.criticos || 0;
-                }
-
-                // Cargamos tabla
-                const movs = await API.getMovimientos();
-                const tbody = document.querySelector('#movimientos-table tbody');
-                tbody.innerHTML = '';
-                
-                movs.forEach(m => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${new Date(m.created_at).toLocaleDateString()}</td>
-                        <td>${m.productos?.nombre || 'N/A'}</td>
-                        <td><span style="padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; background: ${m.tipo === 'Entrada' ? '#dcfce7' : '#fee2e2'}">${m.tipo}</span></td>
-                        <td>${m.cantidad}</td>
-                        <td>${m.usuarios?.nombre || 'Admin'}</td>
-                    `;
-                    tbody.appendChild(row);
-                });
-                console.log("Carga completada exitosamente.");
+                status.innerText = "Conexión exitosa";
+                document.getElementById('stats').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
             } catch (err) {
-                console.error("ERROR CRÍTICO AL CARGAR DATOS:", err);
-                document.getElementById('user-info').innerText = "Error de conexión (Revisa consola F12)";
+                status.innerText = "Error: " + err.message;
             }
         }
-
-        document.addEventListener('DOMContentLoaded', init);
+        loadData();
     </script>
 </body>
 </html>
