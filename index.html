@@ -3,70 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INVENTARIOSPRO | Dashboard Empresarial</title>
+    <title>INVENTARIOSPRO | Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #1a2b4a; --bg: #f4f7f9; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; }
-        aside { width: 260px; background: var(--primary); color: white; padding: 25px; flex-shrink: 0; }
-        aside h2 { font-size: 1.2rem; margin-bottom: 30px; letter-spacing: 1px; }
-        nav { color: #94a3b8; font-size: 0.9rem; line-height: 2.5; cursor: pointer; }
-        main { flex: 1; padding: 40px; overflow-y: auto; }
-        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 40px; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        .label { font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: 600; letter-spacing: 0.05em; margin-bottom: 8px; }
-        .val { font-size: 1.8rem; font-weight: 700; color: #1a2b4a; }
-        .error-msg { color: #dc2626; padding: 15px; background: #fef2f2; border-radius: 8px; margin-bottom: 20px; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f4f7f9; margin: 0; display: flex; height: 100vh; }
+        aside { width: 260px; background: #1a2b4a; color: white; padding: 20px; }
+        main { flex: 1; padding: 30px; overflow-y: auto; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .val { font-size: 1.5rem; font-weight: bold; color: #1a2b4a; }
+        .error-msg { color: red; font-weight: bold; padding: 10px; background: #fee2e2; border-radius: 5px; }
     </style>
 </head>
 <body>
     <aside>
         <h2>INVENTARIOSPRO</h2>
-        <nav>
-            <div>Dashboard</div>
-            <div>Productos</div>
-            <div>Movimientos</div>
-            <div>Kardex</div>
-            <div>Configuración</div>
-        </nav>
+        <nav>Dashboard · Productos · Movimientos</nav>
     </aside>
     <main>
         <div id="error-container"></div>
         <div class="kpi-grid">
-            <div class="card"><div class="label">Total Productos</div><div class="val" id="total-prod">--</div></div>
-            <div class="card"><div class="label">Stock Crítico</div><div class="val" id="stock-crit">--</div></div>
-            <div class="card"><div class="label">Entradas</div><div class="val" id="total-ent">--</div></div>
-            <div class="card"><div class="label">Salidas</div><div class="val" id="total-sal">--</div></div>
+            <div class="card"><div>Total Productos</div><div class="val" id="total-prod">--</div></div>
+            <div class="card"><div>Stock Crítico</div><div class="val" id="stock-crit">--</div></div>
+            <div class="card"><div>Entradas</div><div class="val" id="total-ent">--</div></div>
+            <div class="card"><div>Salidas</div><div class="val" id="total-sal">--</div></div>
         </div>
     </main>
 
     <script>
-        // CONFIGURACIÓN DE CONEXIÓN
-        const supabaseUrl = 'https://wepsvgqdctsgtnizhbvc.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlcHN2Z3FkY3RzZ3RuaXpoYnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2NTYxMTMsImV4cCI6MjA5OTIzMjExM30.Sce0_kT7eT1AGy-o_-7w4t_Rq9TowBHDN-dWK8nmEOA';
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        // CLIENTE SUPABASE INICIALIZADO
+        const supabase = supabase.createClient(
+            'https://wepsvgqdctsgtnizhbvc.supabase.co', 
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlcHN2Z3FkY3RzZ3RuaXpoYnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2NTYxMTMsImV4cCI6MjA5OTIzMjExM30.Sce0_kT7eT1AGy-o_-7w4t_Rq9TowBHDN-dWK8nmEOA'
+        );
 
-        async function initDashboard() {
+        async function init() {
             const errDiv = document.getElementById('error-container');
             try {
-                // Llamamos a la función RPC que ya comprobamos que funciona
-                const { data, error } = await supabase.rpc('get_dashboard_stats');
+                console.log("Iniciando carga de datos...");
                 
-                if (error) throw error;
+                // 1. Llamada RPC
+                const { data: stats, error: errStats } = await supabase.rpc('get_dashboard_stats');
                 
-                // Actualizamos la UI
-                document.getElementById('total-prod').innerText = data.total_productos || 0;
-                document.getElementById('stock-crit').innerText = data.stock_bajo || 0;
-                document.getElementById('total-ent').innerText = data.total_entradas || 0;
-                document.getElementById('total-sal').innerText = data.total_salidas || 0;
+                if (errStats) {
+                    console.error("Error en RPC:", errStats);
+                    throw new Error("Error en función get_dashboard_stats: " + errStats.message);
+                }
+                
+                console.log("Datos recibidos:", stats);
+                document.getElementById('total-prod').innerText = stats.total_productos || 0;
+                document.getElementById('stock-crit').innerText = stats.stock_bajo || 0;
+                document.getElementById('total-ent').innerText = stats.total_entradas || 0;
+                document.getElementById('total-sal').innerText = stats.total_salidas || 0;
 
             } catch (err) {
-                console.error("Error al cargar dashboard:", err);
-                errDiv.innerHTML = `<div class="error-msg">Error: ${err.message}</div>`;
+                console.error("Error crítico:", err);
+                errDiv.innerHTML = `<div class="error-msg">Error de conexión: ${err.message}</div>`;
             }
         }
 
-        initDashboard();
+        init();
     </script>
 </body>
 </html>
