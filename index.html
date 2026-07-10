@@ -1,55 +1,39 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>INVENTARIOSPRO | Dashboard Empresarial</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f4f7f9; margin: 0; display: flex; height: 100vh; }
-        aside { width: 260px; background: #1a2b4a; color: white; padding: 20px; }
-        main { flex: 1; padding: 30px; overflow-y: auto; }
-        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .val { font-size: 1.5rem; font-weight: bold; color: #1a2b4a; }
-        .label { font-size: 0.85rem; color: #64748b; margin-bottom: 5px; }
-    </style>
-</head>
-<body>
-    <aside>
-        <h2>INVENTARIOSPRO</h2>
-        <nav>Dashboard · Productos · Movimientos</nav>
-    </aside>
-    <main>
-        <div class="kpi-grid">
-            <div class="card"><div class="label">Total Productos</div><div class="val" id="total-prod">--</div></div>
-            <div class="card"><div class="label">Stock Crítico</div><div class="val" id="stock-crit">--</div></div>
-            <div class="card"><div class="label">Entradas</div><div class="val" id="total-ent">--</div></div>
-            <div class="card"><div class="label">Salidas</div><div class="val" id="total-sal">--</div></div>
-        </div>
-    </main>
-
-    <script>
+<script>
         const supabase = supabase.createClient(
             'https://wepsvgqdctsgtnizhbvc.supabase.co', 
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlcHN2Z3FkY3RzZ3RuaXpoYnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2NTYxMTMsImV4cCI6MjA5OTIzMjExM30.Sce0_kT7eT1AGy-o_-7w4t_Rq9TowBHDN-dWK8nmEOA'
         );
 
         async function init() {
+            // Referencia a los elementos
+            const totalProd = document.getElementById('total-prod');
+            
             try {
-                const { data: stats, error } = await supabase.rpc('get_dashboard_stats');
-                if (error) throw error;
+                console.log("Intentando ejecutar get_dashboard_stats...");
                 
-                // Mapeo de datos a la UI
-                document.getElementById('total-prod').innerText = stats.total_productos;
-                document.getElementById('stock-crit').innerText = stats.stock_bajo;
-                document.getElementById('total-ent').innerText = stats.total_entradas;
-                document.getElementById('total-sal').innerText = stats.total_salidas;
+                const { data, error } = await supabase.rpc('get_dashboard_stats');
+                
+                if (error) {
+                    // Si falla, mostramos el error directamente en la tarjeta
+                    console.error("Error Supabase:", error);
+                    totalProd.innerText = "Error: " + error.code;
+                    totalProd.title = error.message; // Pasa el mouse sobre el texto para ver el error
+                    return;
+                }
+                
+                console.log("Datos obtenidos:", data);
+                
+                // Si llegamos aquí, los datos existen
+                document.getElementById('total-prod').innerText = data.total_productos || 0;
+                document.getElementById('stock-crit').innerText = data.stock_bajo || 0;
+                document.getElementById('total-ent').innerText = data.total_entradas || 0;
+                document.getElementById('total-sal').innerText = data.total_salidas || 0;
+
             } catch (err) {
-                console.error("Error cargando dashboard:", err);
+                totalProd.innerText = "Error en JS";
+                console.error("Error inesperado:", err);
             }
         }
 
         init();
     </script>
-</body>
-</html>
