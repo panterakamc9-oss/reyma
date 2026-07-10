@@ -3,52 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INVENTARIOSPRO | Dashboard Empresarial</title>
+    <title>INVENTARIOSPRO | Enterprise</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --sidebar: #1a2b4a; --bg: #f8fafc; --text-main: #1e293b; --accent: #0056b3; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; color: var(--text-main); }
-        
-        /* Sidebar Profesional */
-        aside { width: 260px; background: var(--sidebar); color: white; padding: 30px; flex-shrink: 0; }
-        h1.logo { font-size: 1.4rem; margin-bottom: 40px; color: #fff; letter-spacing: 1px; }
-        nav div { padding: 12px 0; color: #94a3b8; font-weight: 500; cursor: pointer; transition: 0.3s; }
-        nav div:hover { color: #fff; }
-
-        /* Main Content */
-        main { flex: 1; padding: 40px; overflow-y: auto; }
-        .header { margin-bottom: 30px; }
-        .header h2 { font-size: 1.8rem; margin: 0; }
-        
-        /* Grid de KPIs */
-        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        .card { background: white; padding: 25px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .label { font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 10px; }
-        .val { font-size: 2rem; font-weight: 800; color: var(--sidebar); }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.05); border-left: 4px solid #3b82f6; }
+        .active-item { background: rgba(255,255,255,0.1); border-left: 4px solid #3b82f6; }
     </style>
 </head>
-<body>
-    <aside>
-        <h1 class="logo">INVENTARIOSPRO</h1>
-        <nav>
-            <div>Dashboard</div>
-            <div>Productos</div>
-            <div>Movimientos</div>
-            <div>Kardex</div>
-            <div>Configuración</div>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col p-6">
+        <div class="text-white text-2xl font-bold mb-10 tracking-tighter">Reyma<span class="text-blue-500">Pro</span></div>
+        <nav class="flex-1 space-y-2">
+            <div class="sidebar-item active-item p-3 cursor-pointer text-white rounded-r">Dashboard</div>
+            <div class="sidebar-item p-3 cursor-pointer">Inventario</div>
+            <div class="sidebar-item p-3 cursor-pointer">Reportes</div>
+            <div class="sidebar-item p-3 cursor-pointer">Configuración</div>
         </nav>
+        <div class="text-xs text-slate-500">v 2.0.4 - Enterprise</div>
     </aside>
 
-    <main>
-        <div class="header">
-            <h2>Panel de Control Industrial</h2>
+    <!-- MAIN -->
+    <main class="flex-1 overflow-y-auto p-8">
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800">Panel de Control</h1>
+                <p class="text-slate-500">Resumen operativo al instante</p>
+            </div>
+            <button class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition">
+                + Nuevo Producto
+            </button>
+        </header>
+
+        <!-- KPIS -->
+        <div class="grid grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Productos</p>
+                <div id="kpi-prod" class="text-3xl font-bold mt-2">--</div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Stock Crítico</p>
+                <div id="kpi-crit" class="text-3xl font-bold mt-2 text-red-500">--</div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Entradas mes</p>
+                <div id="kpi-ent" class="text-3xl font-bold mt-2 text-green-500">--</div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Salidas mes</p>
+                <div id="kpi-sal" class="text-3xl font-bold mt-2 text-amber-500">--</div>
+            </div>
         </div>
-        
-        <div class="kpi-grid">
-            <div class="card"><div class="label">Total Productos</div><div class="val" id="total-prod">--</div></div>
-            <div class="card"><div class="label">Stock Crítico</div><div class="val" id="stock-crit">--</div></div>
-            <div class="card"><div class="label">Entradas</div><div class="val" id="total-ent">--</div></div>
-            <div class="card"><div class="label">Salidas</div><div class="val" id="total-sal">--</div></div>
+
+        <!-- CONTENT GRID -->
+        <div class="grid grid-cols-3 gap-8">
+            <div class="col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h3 class="font-bold text-lg mb-4">Productos Activos</h3>
+                <table class="w-full">
+                    <thead><tr class="text-left text-slate-400 text-xs uppercase"><th class="pb-4">Producto</th><th class="pb-4">SKU</th><th class="pb-4">Stock</th><th class="pb-4">Estado</th></tr></thead>
+                    <tbody id="prod-body"></tbody>
+                </table>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h3 class="font-bold text-lg mb-4">Stock por Categoría</h3>
+                <canvas id="inventoryChart"></canvas>
+            </div>
         </div>
     </main>
 
@@ -59,20 +83,40 @@
         );
 
         async function init() {
-            try {
-                const { data, error } = await supabase.rpc('get_dashboard_stats');
-                if (error) throw error;
-                
-                // Actualización limpia
-                document.getElementById('total-prod').innerText = data.total_productos;
-                document.getElementById('stock-crit').innerText = data.stock_bajo;
-                document.getElementById('total-ent').innerText = data.total_entradas;
-                document.getElementById('total-sal').innerText = data.total_salidas;
-            } catch (err) {
-                console.error("Dashboard error:", err);
-            }
+            const { data: stats } = await supabase.rpc('get_dashboard_stats');
+            document.getElementById('kpi-prod').innerText = stats.total_productos;
+            document.getElementById('kpi-crit').innerText = stats.stock_bajo;
+            document.getElementById('kpi-ent').innerText = stats.total_entradas;
+            document.getElementById('kpi-sal').innerText = stats.total_salidas;
+
+            const { data: prods } = await supabase.from('productos').select('*');
+            const tbody = document.getElementById('prod-body');
+            
+            tbody.innerHTML = prods.map(p => {
+                const isCrit = p.stock_actual <= p.stock_minimo;
+                return `
+                    <tr class="border-t border-slate-100 hover:bg-slate-50 transition">
+                        <td class="py-4 font-medium">${p.nombre}</td>
+                        <td class="text-slate-500 text-sm">${p.sku}</td>
+                        <td class="font-bold">${p.stock_actual}</td>
+                        <td>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold ${isCrit ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">
+                                ${isCrit ? 'Bajo' : 'Óptimo'}
+                            </span>
+                        </td>
+                    </tr>`;
+            }).join('');
+
+            new Chart(document.getElementById('inventoryChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Industrial', 'Eléctrico', 'Otros'],
+                    datasets: [{ data: [15, 3, 5], backgroundColor: ['#3b82f6', '#10b981', '#f59e0b'] }]
+                },
+                options: { plugins: { legend: { position: 'bottom' } } }
+            });
         }
-        window.onload = init;
+        init();
     </script>
 </body>
 </html>
